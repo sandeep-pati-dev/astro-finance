@@ -105,7 +105,6 @@ export class ExpenseService {
   static async getExpenseSummary(userId: string, period: 'day' | 'week' | 'month' | 'year' = 'month'): Promise<any> {
     const now = new Date();
     let startDate: Date;
-    let endDate: Date = new Date();
 
     switch (period) {
       case 'day':
@@ -154,7 +153,7 @@ export class ExpenseService {
       }
     ]);
 
-    const total = expenses.reduce((sum, item) => sum + item.totalAmount, 0);
+    const total = expenses.reduce((sum: number, item: any) => sum + item.totalAmount, 0);
 
     return {
       period,
@@ -168,7 +167,6 @@ export class ExpenseService {
   static async getDailySpending(userId: string, period: 'week' | 'month'): Promise<any> {
     const now = new Date();
     let startDate: Date;
-    let endDate: Date = new Date();
 
     switch (period) {
       case 'week':
@@ -288,7 +286,7 @@ export class ExpenseService {
       }
     ]);
 
-    const total = expenses.reduce((sum, item) => sum + item.totalAmount, 0);
+    const total = expenses.reduce((sum: number, item: any) => sum + item.totalAmount, 0);
 
     return {
       period: 'month',
@@ -480,9 +478,9 @@ export class ExpenseService {
       ])
     ]);
 
-    const yesterdayTotal = yesterdayExpenses[0]?.totalAmount || 0;
-    const lastWeekTotal = lastWeekExpenses[0]?.totalAmount || 0;
-    const lastMonthTotal = lastMonthExpenses[0]?.totalAmount || 0;
+    const yesterdayTotal = yesterdayExpenses.reduce((sum: number, item: any) => sum + (item.totalAmount || 0), 0);
+    const lastWeekTotal = lastWeekExpenses.reduce((sum: number, item: any) => sum + (item.totalAmount || 0), 0);
+    const lastMonthTotal = lastMonthExpenses.reduce((sum: number, item: any) => sum + (item.totalAmount || 0), 0);
 
     // Calculate percentage changes
     const calculateChange = (current: number, previous: number): number => {
