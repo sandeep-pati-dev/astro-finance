@@ -31,25 +31,37 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
+    // Only handle 401 errors if we're not on the login page
+    // and if it's not a network error (no response)
+    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
+      // Check if we have a token in localStorage
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        // Token exists but is invalid - this is a real auth error
+        localStorage.removeItem('authToken');
+        // Use a more gentle redirect to avoid interrupting user flow
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      }
     }
-    
+
     // Handle specific error cases with better messages
     let errorMessage = error.response?.data?.error || error.message || 'Request failed';
-    
+
     if (error.response?.status === 409) {
       // Conflict error - user already exists
       errorMessage = 'An account with this email already exists. Please try logging in instead.';
     } else if (error.response?.status === 400) {
       // Bad request - validation errors
       errorMessage = errorMessage || 'Please check your input and try again.';
+    } else if (!error.response) {
+      // Network error - no response from server
+      errorMessage = 'Network error. Please check your connection and try again.';
     }
-    
+
     console.error('API request failed:', errorMessage, error.response?.status);
-    
+
     // Enhance error object with better message
     error.userFriendlyMessage = errorMessage;
     return Promise.reject(error);

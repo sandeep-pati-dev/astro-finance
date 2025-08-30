@@ -52,12 +52,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // Animated Route Wrapper
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+  const { isAuthenticated, loading } = useAuth();
+
   const pageVariants = {
     initial: { opacity: 0, x: 50 },
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -50 }
   };
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -92,7 +102,11 @@ const AnimatedRoutes = () => {
               <Settings />
             </ProtectedRoute>
           } />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={
+            isAuthenticated ?
+              <Navigate to="/dashboard" replace /> :
+              <Navigate to="/login" replace />
+          } />
         </Routes>
       </motion.div>
     </AnimatePresence>
@@ -108,13 +122,15 @@ const App = () => {
     // Check if user is already authenticated
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Check if token is expired
+      // Check if token is expired with some buffer time (5 minutes)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const isExpired = payload.exp * 1000 < Date.now();
-        
-        if (isExpired) {
-          // Token is expired, remove it and show message
+        const currentTime = Date.now();
+        const expirationTime = payload.exp * 1000;
+        const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+
+        if (expirationTime < (currentTime + bufferTime)) {
+          // Token is expired or will expire soon, remove it and show message
           localStorage.removeItem('authToken');
           toast({
             title: "Session expired",
@@ -124,7 +140,7 @@ const App = () => {
           setLoading(false);
           return;
         }
-        
+
         // Verify token by fetching current user
         authApi.getCurrentUser()
           .then((response) => {
@@ -137,13 +153,18 @@ const App = () => {
           })
           .catch((error) => {
             console.error('Token validation failed:', error);
-            localStorage.removeItem('authToken');
+            // Only remove token if it's actually an authentication error
             if (error.response?.status === 401) {
+              localStorage.removeItem('authToken');
               toast({
                 title: "Session expired",
                 description: "Please log in again to continue.",
                 variant: "destructive",
               });
+            } else {
+              // Network error or server error - don't remove token
+              console.warn('Network error during token validation, keeping token');
+              // You might want to retry the validation later or show a different message
             }
           })
           .finally(() => {
@@ -151,6 +172,7 @@ const App = () => {
           });
       } catch (error) {
         // Invalid token format
+        console.error('Invalid token format:', error);
         localStorage.removeItem('authToken');
         setLoading(false);
       }
