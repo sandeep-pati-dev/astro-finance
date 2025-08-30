@@ -1,0 +1,72 @@
+import { z } from 'zod';
+export declare const registerSchema: z.ZodObject<{
+    email: z.ZodString;
+    password: z.ZodString;
+    name: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    email: string;
+    password: string;
+    name: string;
+}, {
+    email: string;
+    password: string;
+    name: string;
+}>;
+export declare const loginSchema: z.ZodObject<{
+    email: z.ZodString;
+    password: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    email: string;
+    password: string;
+}, {
+    email: string;
+    password: string;
+}>;
+export declare const expenseSchema: z.ZodObject<{
+    amount: z.ZodNumber;
+    category: z.ZodEnum<["food", "transport", "shopping", "entertainment", "bills", "healthcare", "education", "other"]>;
+    date: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodOptional<z.ZodDate>]>;
+    notes: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    amount: number;
+    category: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other";
+    date?: string | Date | undefined;
+    notes?: string | undefined;
+}, {
+    amount: number;
+    category: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other";
+    date?: string | Date | undefined;
+    notes?: string | undefined;
+}>;
+export declare const expenseUpdateSchema: z.ZodObject<{
+    amount: z.ZodOptional<z.ZodNumber>;
+    category: z.ZodOptional<z.ZodEnum<["food", "transport", "shopping", "entertainment", "bills", "healthcare", "education", "other"]>>;
+    date: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodOptional<z.ZodDate>]>>;
+    notes: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+}, "strip", z.ZodTypeAny, {
+    date?: string | Date | undefined;
+    amount?: number | undefined;
+    category?: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other" | undefined;
+    notes?: string | undefined;
+}, {
+    date?: string | Date | undefined;
+    amount?: number | undefined;
+    category?: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other" | undefined;
+    notes?: string | undefined;
+}>;
+export declare const userProfileSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    email: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    email?: string | undefined;
+    name?: string | undefined;
+}, {
+    email?: string | undefined;
+    name?: string | undefined;
+}>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ExpenseInput = z.infer<typeof expenseSchema>;
+export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>;
+export type UserProfileInput = z.infer<typeof userProfileSchema>;
+//# sourceMappingURL=validators.d.ts.map

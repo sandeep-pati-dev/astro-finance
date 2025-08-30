@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { authApi } from "@/lib/api";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,27 +21,63 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    if (password.length < 6) {
-      toast({
-        title: "Invalid Password",
-        description: "Password must be at least 6 characters",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return;
-    }
 
-    login();
-    toast({
-      title: isLogin ? "Welcome back!" : "Account created!",
-      description: `Successfully ${isLogin ? "logged in" : "signed up"}`,
-    });
-    navigate("/dashboard");
-    setIsLoading(false);
+    try {
+      if (isLogin) {
+        const response = await authApi.login({ email, password });
+        if (response.data.success) {
+          login(response.data.data.token, response.data.data.user);
+          toast({
+            title: "Welcome back!",
+            description: "Successfully logged in",
+          });
+          navigate("/dashboard");
+        } else {
+          toast({
+            title: "Login failed",
+            description: response.data.error || "Invalid credentials",
+            variant: "destructive",
+          });
+        }
+      } else {
+        const response = await authApi.register({ name, email, password });
+        if (response.data.success) {
+          login(response.data.data.token, response.data.data.user);
+          toast({
+            title: "Account created!",
+            description: "Successfully signed up",
+          });
+          navigate("/dashboard");
+        } else {
+          toast({
+            title: "Registration failed",
+            description: response.data.error || "Could not create account",
+            variant: "destructive",
+          });
+        }
+      }
+      } catch (error: any) {
+        // Handle specific error cases with better user feedback
+        let title = "Error";
+        let description = error.userFriendlyMessage || error.message || "Something went wrong";
+        
+        if (error.response?.status === 409 && !isLogin) {
+          // User already exists - suggest logging in instead
+          title = "Account Exists";
+          description = "An account with this email already exists. Would you like to sign in instead?";
+          
+          // Auto-switch to login mode for better UX
+          setTimeout(() => setIsLogin(true), 2000);
+        }
+        
+        toast({
+          title,
+          description,
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
   };
 
   const cardVariants = {

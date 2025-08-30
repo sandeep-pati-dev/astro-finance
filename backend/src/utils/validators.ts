@@ -1,0 +1,44 @@
+import { z } from 'zod';
+
+// User validation schemas
+export const registerSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(50, 'Name must be less than 50 characters')
+});
+
+export const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required')
+});
+
+// Expense validation schemas
+export const expenseSchema = z.object({
+  amount: z.number().positive('Amount must be positive'),
+  category: z.enum(['food', 'transport', 'shopping', 'entertainment', 'bills', 'healthcare', 'education', 'other']),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, expected YYYY-MM-DD').optional().or(z.date().optional()),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional()
+});
+
+export const expenseUpdateSchema = expenseSchema.partial();
+
+// User profile validation
+export const userProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(50, 'Name must be less than 50 characters').optional(),
+  email: z.string().email('Invalid email address').optional()
+});
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(6, 'Current password must be at least 6 characters'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+  confirmNewPassword: z.string().min(6, 'Confirm new password must be at least 6 characters')
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: "New password and confirm password must match",
+  path: ["confirmNewPassword"],
+});
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ExpenseInput = z.infer<typeof expenseSchema>;
+export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>;
+export type UserProfileInput = z.infer<typeof userProfileSchema>;

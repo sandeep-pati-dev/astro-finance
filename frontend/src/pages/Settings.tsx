@@ -1,14 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User, Bell, DollarSign, Shield, LogOut, Lightbulb, Save, Check } from "lucide-react";
+import { ArrowLeft, User, Shield, LogOut, Save, Check, X, Eye, EyeOff, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
 import { toast } from "@/hooks/use-toast";
 import GlassCard from "@/components/GlassCard";
+import { userApi, budgetApi } from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -17,48 +31,224 @@ const Settings = () => {
   const [isSaved, setIsSaved] = useState(false);
   
   const [profile, setProfile] = useState({
-    name: "Sandeep Kumar",
-    email: "sandeep@example.com",
+    name: "",
+    email: "",
     budget: "50000",
     currency: "INR"
   });
 
-  const [preferences, setPreferences] = useState({
-    aiInsights: true,
-    notifications: true,
-    budgetAlerts: true,
-    expenseReminders: false,
-    weeklyReports: true
+  const [budgetData, setBudgetData] = useState({
+    totalSpent: 0,
+    percentageUsed: 0,
+    budgetAmount: 50000,
+    loading: true,
+    error: null as string | null
   });
+
+  // Change password state
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: ""
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Export data state
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch user profile
+        const profileResponse = await userApi.getProfile();
+        if (profileResponse.data.success) {
+          const user = profileResponse.data.data.user;
+          setProfile({
+            name: user.name || "",
+            email: user.email || "",
+            budget: profile.budget,
+            currency: profile.currency
+          });
+        }
+
+        // Fetch budget usage for current month
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const budgetResponse = await budgetApi.getBudgetUsage(year, month);
+        if (budgetResponse.data.success) {
+          const { totalSpent, percentageUsed, budget }= budgetResponse.data.data;
+          // Calculate fallback percentageUsed if missing or zero
+          const calcPercentageUsed = (percentageUsed && percentageUsed > 0)
+            ? percentageUsed
+            : budget && budget.amount > 0
+              ? (totalSpent / budget.amount) * 100
+              : 0;
+
+          setBudgetData(prev => ({
+            ...prev,
+            totalSpent,
+            percentageUsed: calcPercentageUsed,
+            budgetAmount: budget?.amount || 50000,
+            loading: false
+          }));
+          
+          // Update profile budget with real data
+          setProfile(prev => ({
+            ...prev,
+            budget: budget?.amount?.toString() || "50000"
+          }));
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch data", error);
+        setBudgetData(prev => ({
+          ...prev,
+          loading: false,
+          error: error.userFriendlyMessage || "Failed to load budget data"
+        }));
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSaving(false);
-    setIsSaved(true);
-    
-    toast({
-      title: "Settings Saved! ✅",
-      description: "Your preferences have been updated successfully",
-    });
+    try {
+      // Update profile with API
+      const profileResponse = await userApi.updateProfile({
+        name: profile.name,
+        email: profile.email,
+      });
 
-    setTimeout(() => setIsSaved(false), 3000);
+      // Update budget if changed
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const budgetAmount = Number(profile.budget);
+
+      if (!isNaN(budgetAmount) && budgetAmount !== budgetData.budgetAmount) {
+        await budgetApi.updateBudget(year, month, { amount: budgetAmount });
+        setBudgetData(prev => ({ ...prev, budgetAmount }));
+      }
+      
+      if (profileResponse.data.success) {
+        setIsSaved(true);
+        toast({
+          title: "Profile Updated! ✅",
+          description: "Your profile information has been updated successfully",
+        });
+      } else {
+        throw new Error(profileResponse.data.error || "Failed to update profile");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error saving profile",
+        description: error.userFriendlyMessage || "Failed to update profile information",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setIsSaved(false), 3000);
+    }
   };
 
   const handleLogout = () => {
-    logout();
+    // Show toast first
     toast({
       title: "Logged Out",
       description: "See you again soon!",
     });
-    navigate("/login");
+    
+    // Add a small delay to ensure toast is visible before navigation
+    setTimeout(() => {
+      logout();
+      navigate("/login");
+    }, 100);
+  };
+
+  const handleChangePassword = async () => {
+    setIsChangingPassword(true);
+    
+    try {
+      const response = await userApi.changePassword(passwordData);
+      
+      if (response.data.success) {
+        toast({
+          title: "Password Changed! ✅",
+          description: "Your password has been updated successfully",
+        });
+        setIsChangePasswordOpen(false);
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmNewPassword: ""
+        });
+      } else {
+        throw new Error(response.data.error || "Failed to change password");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error changing password",
+        description: error.userFriendlyMessage || "Failed to change password. Please check your current password.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    
+    try {
+      const response = await userApi.exportData(exportYear, exportMonth);
+      
+      // Create a blob from the response data
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `expenses-${exportYear}-${exportMonth}.csv`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export Successful! ✅",
+        description: `Your expense data for ${exportMonth}/${exportYear} has been downloaded`,
+      });
+      
+      setIsExportDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Export Failed",
+        description: error.userFriendlyMessage || "Failed to export data. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const BudgetProgressRing = () => {
-    const budgetUsed = 78; // 78% used
+    const budgetUsed = budgetData.percentageUsed || 0; // use real data
     const circumference = 2 * Math.PI * 45;
     const strokeDasharray = `${(budgetUsed / 100) * circumference} ${circumference}`;
 
@@ -100,7 +290,7 @@ const Settings = () => {
         
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-lg font-bold text-primary">{budgetUsed}%</div>
+            <div className="text-lg font-bold text-primary">{budgetUsed.toFixed(0)}%</div>
             <div className="text-xs text-secondary-foreground">used</div>
           </div>
         </div>
@@ -194,9 +384,10 @@ const Settings = () => {
                 <label className="block text-sm font-medium mb-2">Email</label>
                 <Input
                   value={profile.email}
-                  onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
-                  className="bg-input border-glass-border focus:border-primary"
+                  disabled
+                  className="bg-input border-glass-border focus:border-primary opacity-70 cursor-not-allowed"
                 />
+                <p className="text-xs text-secondary-foreground mt-1">Email cannot be changed</p>
               </div>
             </div>
           </div>
@@ -205,7 +396,7 @@ const Settings = () => {
         {/* Budget Settings */}
         <GlassCard delay={0.2}>
           <div className="flex items-center gap-2 mb-6">
-            <DollarSign className="h-5 w-5 text-primary" />
+            <span className="text-primary text-xl font-semibold">₹</span>
             <h2 className="text-xl font-semibold text-neon">Budget Preferences</h2>
           </div>
 
@@ -213,12 +404,12 @@ const Settings = () => {
             <div>
               <label className="block text-sm font-medium mb-2">Monthly Budget Limit</label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                <span className="absolute left-3 top-3 text-primary text-sm font-semibold">₹</span>
                 <Input
                   type="number"
                   value={profile.budget}
                   onChange={(e) => setProfile(prev => ({ ...prev, budget: e.target.value }))}
-                  className="pl-10 bg-input border-glass-border focus:border-primary"
+                  className="pl-8 bg-input border-glass-border focus:border-primary"
                 />
               </div>
             </div>
@@ -226,84 +417,11 @@ const Settings = () => {
             <div className="flex flex-col items-center">
               <BudgetProgressRing />
               <p className="text-sm text-secondary-foreground text-center">
-                ₹39,000 of ₹50,000 used this month
+                ₹{budgetData.totalSpent.toLocaleString()} of ₹{budgetData.budgetAmount.toLocaleString()} used this month
               </p>
             </div>
           </div>
         </GlassCard>
-
-        {/* AI & Notifications */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <GlassCard delay={0.3}>
-            <div className="flex items-center gap-2 mb-6">
-              <Lightbulb className="h-5 w-5 text-neon-purple" />
-              <h2 className="text-xl font-semibold text-neon-purple">AI Insights</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-background-secondary/30">
-                <div>
-                  <h3 className="font-medium">Enable AI Insights</h3>
-                  <p className="text-sm text-secondary-foreground">Get personalized spending tips</p>
-                </div>
-                <Switch
-                  checked={preferences.aiInsights}
-                  onCheckedChange={(checked) => 
-                    setPreferences(prev => ({ ...prev, aiInsights: checked }))
-                  }
-                />
-              </div>
-
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ 
-                  opacity: preferences.aiInsights ? 1 : 0.5,
-                  height: "auto"
-                }}
-                className="p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5"
-              >
-                <p className="text-sm">
-                  🤖 AI will analyze your spending patterns and provide insights to help you save money and make better financial decisions.
-                </p>
-              </motion.div>
-            </div>
-          </GlassCard>
-
-          <GlassCard delay={0.4}>
-            <div className="flex items-center gap-2 mb-6">
-              <Bell className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-neon">Notifications</h2>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { key: "notifications", title: "Push Notifications", desc: "General app notifications" },
-                { key: "budgetAlerts", title: "Budget Alerts", desc: "When approaching budget limits" },
-                { key: "expenseReminders", title: "Expense Reminders", desc: "Daily expense tracking reminders" },
-                { key: "weeklyReports", title: "Weekly Reports", desc: "Summary of your spending" }
-              ].map((item, index) => (
-                <motion.div
-                  key={item.key}
-                  className="flex items-center justify-between p-4 rounded-xl bg-background-secondary/30"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + index * 0.1 }}
-                >
-                  <div>
-                    <h3 className="font-medium">{item.title}</h3>
-                    <p className="text-sm text-secondary-foreground">{item.desc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences[item.key as keyof typeof preferences]}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ ...prev, [item.key]: checked }))
-                    }
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </GlassCard>
-        </div>
 
         {/* Security & Logout */}
         <GlassCard delay={0.5}>
@@ -316,6 +434,7 @@ const Settings = () => {
             <Button
               variant="outline"
               className="flex-1 glass-hover border-glass-border"
+              onClick={() => setIsChangePasswordOpen(true)}
             >
               Change Password
             </Button>
@@ -323,7 +442,9 @@ const Settings = () => {
             <Button
               variant="outline"
               className="flex-1 glass-hover border-glass-border"
+              onClick={() => setIsExportDialogOpen(true)}
             >
+              <Download className="h-4 w-4 mr-2" />
               Export Data
             </Button>
 
@@ -338,6 +459,229 @@ const Settings = () => {
           </div>
         </GlassCard>
       </div>
+
+      {/* Change Password Dialog */}
+      <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
+        <DialogContent className="glass border-glass-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-neon">Change Password</DialogTitle>
+            <DialogDescription>
+              Update your password to keep your account secure
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Current Password */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Password</label>
+              <div className="relative">
+                <Input
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData(prev => ({ 
+                    ...prev, 
+                    currentPassword: e.target.value 
+                  }))}
+                  className="pr-10 bg-input border-glass-border"
+                  placeholder="Enter current password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1 h-7 w-7"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* New Password */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Password</label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData(prev => ({ 
+                    ...prev, 
+                    newPassword: e.target.value 
+                  }))}
+                  className="pr-10 bg-input border-glass-border"
+                  placeholder="Enter new password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1 h-7 w-7"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Confirm New Password */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Confirm New Password</label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={passwordData.confirmNewPassword}
+                  onChange={(e) => setPasswordData(prev => ({ 
+                    ...prev, 
+                    confirmNewPassword: e.target.value 
+                  }))}
+                  className="pr-10 bg-input border-glass-border"
+                  placeholder="Confirm new password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1 h-7 w-7"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setIsChangePasswordOpen(false)}
+              className="border-glass-border"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={isChangingPassword}
+              className="bg-gradient-primary hover:glow text-primary-foreground"
+            >
+              {isChangingPassword ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full mr-2"
+                />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {isChangingPassword ? "Changing..." : "Change Password"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Export Data Dialog */}
+      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+        <DialogContent className="glass border-glass-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-neon">Export Expense Data</DialogTitle>
+            <DialogDescription>
+              Select the month and year to export your expense data as CSV
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Year Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Year</label>
+              <Select
+                value={exportYear.toString()}
+                onValueChange={(value) => setExportYear(parseInt(value))}
+              >
+                <SelectTrigger className="bg-input border-glass-border">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Month Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Month</label>
+              <Select
+                value={exportMonth.toString()}
+                onValueChange={(value) => setExportMonth(parseInt(value))}
+              >
+                <SelectTrigger className="bg-input border-glass-border">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { value: 1, label: "January" },
+                    { value: 2, label: "February" },
+                    { value: 3, label: "March" },
+                    { value: 4, label: "April" },
+                    { value: 5, label: "May" },
+                    { value: 6, label: "June" },
+                    { value: 7, label: "July" },
+                    { value: 8, label: "August" },
+                    { value: 9, label: "September" },
+                    { value: 10, label: "October" },
+                    { value: 11, label: "November" },
+                    { value: 12, label: "December" }
+                  ].map(month => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setIsExportDialogOpen(false)}
+              className="border-glass-border"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleExportData}
+              disabled={isExporting}
+              className="bg-gradient-primary hover:glow text-primary-foreground"
+            >
+              {isExporting ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full mr-2"
+                />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              {isExporting ? "Exporting..." : "Export Data"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

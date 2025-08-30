@@ -5,31 +5,47 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
-import { useState, createContext, useContext } from "react";
+import { useState, createContext, useContext, useEffect } from "react";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import { authApi } from "./lib/api";
+import { toast } from "@/hooks/use-toast";
 
 const queryClient = new QueryClient();
 
-// Simple auth context for demo
-const AuthContext = createContext<{
+interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => void;
+  user: any;
+  login: (token: string, userData: any) => void;
   logout: () => void;
-}>({
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
+  user: null,
   login: () => {},
-  logout: () => {}
+  logout: () => {},
+  loading: true,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
@@ -85,13 +101,94 @@ const AnimatedRoutes = () => {
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  const login = () => setIsAuthenticated(true);
-  const logout = () => setIsAuthenticated(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Check if token is expired
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const isExpired = payload.exp * 1000 < Date.now();
+        
+        if (isExpired) {
+          // Token is expired, remove it and show message
+          localStorage.removeItem('authToken');
+          toast({
+            title: "Session expired",
+            description: "Please log in again to continue.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        // Verify token by fetching current user
+        authApi.getCurrentUser()
+          .then((response) => {
+            if (response.data.success) {
+              setIsAuthenticated(true);
+              setUser(response.data.data.user);
+            } else {
+              localStorage.removeItem('authToken');
+            }
+          })
+          .catch((error) => {
+            console.error('Token validation failed:', error);
+            localStorage.removeItem('authToken');
+            if (error.response?.status === 401) {
+              toast({
+                title: "Session expired",
+                description: "Please log in again to continue.",
+                variant: "destructive",
+              });
+            }
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      } catch (error) {
+        // Invalid token format
+        localStorage.removeItem('authToken');
+        setLoading(false);
+      }
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const login = (token: string, userData: any) => {
+    localStorage.setItem('authToken', token);
+    setIsAuthenticated(true);
+    setUser(userData);
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+      localStorage.removeItem('authToken');
+      setIsAuthenticated(false);
+      setUser(null);
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully.",
+        variant: "default",
+      });
+      window.location.href = "/login";
+    } catch (error: any) {
+      toast({
+        title: "Logout failed",
+        description: error.userFriendlyMessage || "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+      <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
         <TooltipProvider>
           <Toaster />
           <Sonner />

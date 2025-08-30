@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { expenseApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 
 const AddExpense = () => {
@@ -14,7 +15,7 @@ const AddExpense = () => {
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format in local time
     notes: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,27 +46,44 @@ const AddExpense = () => {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    
-    toast({
-      title: "Expense Added! ✅",
-      description: `₹${formData.amount} added successfully`,
-    });
-
-    // Reset form and navigate after success animation
-    setTimeout(() => {
-      setFormData({
-        amount: "",
-        category: "",
-        date: new Date().toISOString().split('T')[0],
-        notes: ""
+    try {
+      // Make real API call
+      const response = await expenseApi.createExpense({
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        date: formData.date,
+        notes: formData.notes
       });
-      navigate("/dashboard");
-    }, 2000);
+      
+      if (response.data.success) {
+        setIsSuccess(true);
+        toast({
+          title: "Expense Added! ✅",
+          description: `₹${formData.amount} added successfully`,
+        });
+
+        // Reset form and navigate after success animation
+        setTimeout(() => {
+          setFormData({
+            amount: "",
+            category: "",
+            date: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format in local time
+            notes: ""
+          });
+          navigate("/dashboard");
+        }, 2000);
+      } else {
+        throw new Error(response.data.error || "Failed to add expense");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error adding expense",
+        description: error.userFriendlyMessage || error.message || "Failed to add expense",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const rippleVariants = {
