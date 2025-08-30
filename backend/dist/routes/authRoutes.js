@@ -47,5 +47,16 @@ router.get('/me', authMiddleware_1.authenticate, async (req, res, next) => {
         next(error);
     }
 });
+router.post('/logout', authMiddleware_1.authenticate, async (_req, res, next) => {
+    try {
+        res.json({
+            success: true,
+            data: { message: 'Logged out successfully' }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
 exports.default = router;
 //# sourceMappingURL=authRoutes.js.map

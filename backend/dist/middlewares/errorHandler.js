@@ -13,6 +13,10 @@ const errorHandler = (err, _req, res, _next) => {
         const message = 'Duplicate field value entered';
         error = { message, statusCode: 400 };
     }
+    if (err.message === 'User already exists with this email') {
+        const message = err.message;
+        error = { message, statusCode: 409 };
+    }
     if (err.name === 'ValidationError') {
         const message = Object.values(err.errors).map((val) => val.message).join(', ');
         error = { message, statusCode: 400 };

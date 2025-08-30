@@ -20,9 +20,24 @@ const limiter = (0, express_rate_limit_1.default)({
     message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
+const allowedOrigins = [config_1.default.frontendUrl, 'http://localhost:8080'];
+console.log('Allowed CORS origins:', allowedOrigins);
 app.use((0, cors_1.default)({
-    origin: config_1.default.frontendUrl,
-    credentials: true
+    origin: function (origin, callback) {
+        if (!origin) {
+            callback(null, true);
+            return;
+        }
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            console.log('CORS blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));

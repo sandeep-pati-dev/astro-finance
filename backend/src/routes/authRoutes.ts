@@ -55,7 +55,7 @@ router.get('/me', authenticate, async (req, res, next) => {
 });
 
 // Logout user
-router.post('/logout', authenticate, async (req, res, next) => {
+router.post('/logout', authenticate, async (_req, res, next) => {
   try {
     // In a real application, you might want to:
     // 1. Add the token to a blacklist

@@ -58,5 +58,41 @@ router.delete('/', async (req, res, next) => {
         next(error);
     }
 });
+router.post('/change-password', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const validatedData = validators_1.passwordChangeSchema.parse(req.body);
+        const success = await userService_1.UserService.changePassword(userId, validatedData.currentPassword, validatedData.newPassword);
+        if (!success) {
+            res.status(400).json({ success: false, error: 'Current password is incorrect' });
+            return;
+        }
+        res.json({
+            success: true,
+            data: { message: 'Password changed successfully' }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/export-data/:year/:month', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const year = parseInt(req.params.year);
+        const month = parseInt(req.params.month);
+        if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+            res.status(400).json({ success: false, error: 'Invalid year or month' });
+            return;
+        }
+        const csvData = await userService_1.UserService.exportUserData(userId, year, month);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="export-${year}-${month}.csv"`);
+        res.send(csvData);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 exports.default = router;
 //# sourceMappingURL=userRoutes.js.map

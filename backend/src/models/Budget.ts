@@ -5,9 +5,7 @@ export interface IBudget extends Document {
   month: number; // 1-12
   year: number;
   amount: number;
-  categories?: {
-    [category: string]: number; // category-specific budget amounts
-  };
+  categories?: Map<string, number>; // category-specific budget amounts
   createdAt: Date;
   updatedAt: Date;
 }

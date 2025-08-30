@@ -64,6 +64,27 @@ export declare const userProfileSchema: z.ZodObject<{
     email?: string | undefined;
     name?: string | undefined;
 }>;
+export declare const passwordChangeSchema: z.ZodEffects<z.ZodObject<{
+    currentPassword: z.ZodString;
+    newPassword: z.ZodString;
+    confirmNewPassword: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}, {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}>, {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}, {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ExpenseInput = z.infer<typeof expenseSchema>;

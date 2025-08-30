@@ -31,6 +31,32 @@ router.get('/', async (req, res, next) => {
         next(error);
     }
 });
+router.get('/summary-all', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const summary = await expenseService_1.ExpenseService.getExpenseSummaryAllPeriods(userId);
+        res.json({
+            success: true,
+            data: { summary }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/summary-with-changes', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const summary = await expenseService_1.ExpenseService.getExpenseSummaryWithChanges(userId);
+        res.json({
+            success: true,
+            data: { summary }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
 router.get('/:id', async (req, res, next) => {
     try {
         const userId = req.user._id.toString();
@@ -105,6 +131,64 @@ router.get('/summary/:period?', async (req, res, next) => {
         res.json({
             success: true,
             data: { summary }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/daily-summary/:period?', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const period = req.params.period || 'week';
+        const dailySpending = await expenseService_1.ExpenseService.getDailySpending(userId, period);
+        res.json({
+            success: true,
+            data: { dailySpending }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/summary/month/:year/:month', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const year = parseInt(req.params.year);
+        const month = parseInt(req.params.month);
+        const summary = await expenseService_1.ExpenseService.getExpenseSummaryForMonth(userId, year, month);
+        res.json({
+            success: true,
+            data: { summary }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/daily-summary/month/:year/:month', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const year = parseInt(req.params.year);
+        const month = parseInt(req.params.month);
+        const dailySpending = await expenseService_1.ExpenseService.getDailySpendingForMonth(userId, year, month);
+        res.json({
+            success: true,
+            data: { dailySpending }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/monthly-trends/:months?', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const months = req.params.months ? parseInt(req.params.months) : 6;
+        const trends = await expenseService_1.ExpenseService.getMonthlySpendingTrends(userId, months);
+        res.json({
+            success: true,
+            data: { trends }
         });
     }
     catch (error) {
