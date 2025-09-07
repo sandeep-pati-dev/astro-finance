@@ -20,7 +20,6 @@
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "typeRoots": ["./node_modules/@types"],
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
