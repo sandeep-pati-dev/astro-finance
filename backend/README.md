@@ -79,6 +79,27 @@ npm run dev
 - Use `npm start` to run the compiled application
 - Use `npm test` to run tests
 
+## Deployment to Render
+
+1. Push your code to a GitHub repository.
+
+2. Create a new Web Service on Render and connect your GitHub repository.
+
+3. Configure the following environment variables in Render's dashboard:
+
+   - `PORT`: 10000 (or use Render's default)
+   - `NODE_ENV`: production
+   - `MONGODB_URI`: Your MongoDB Atlas connection string
+   - `JWT_SECRET`: A secure random string (generate a new one for production)
+   - `JWT_EXPIRES_IN`: 7d
+   - `FRONTEND_URL`: Your deployed frontend URL (e.g., https://your-frontend.onrender.com)
+   - `RATE_LIMIT_WINDOW_MS`: 900000
+   - `RATE_LIMIT_MAX_REQUESTS`: 100
+
+4. Render will automatically detect the Node.js app, install dependencies, build using `npm run build`, and start using `npm start`.
+
+5. Your API will be available at the URL provided by Render.
+
 ## Environment Variables
 
 - `PORT`: Server port (default: 3001)
@@ -86,3 +107,5 @@ npm run dev
 - `JWT_SECRET`: JWT secret key
 - `JWT_EXPIRES_IN`: JWT expiration time
 - `FRONTEND_URL`: Frontend URL for CORS
+- `RATE_LIMIT_WINDOW_MS`: Rate limit window in milliseconds
+- `RATE_LIMIT_MAX_REQUESTS`: Maximum requests per window
