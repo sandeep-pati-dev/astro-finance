@@ -7,6 +7,25 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
+// Get budget trend for current month
+router.get('/trend/current', async (req, res, next) => {
+  try {
+    const userId = (req as any).user._id.toString();
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    const trend = await BudgetService.getBudgetTrend(userId, currentMonth, currentYear);
+
+    res.json({
+      success: true,
+      data: trend
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get budget for a month/year
 router.get('/:year/:month', async (req, res, next) => {
   try {
@@ -84,25 +103,6 @@ router.put('/:year/:month', async (req, res, next) => {
     res.json({
       success: true,
       data: { budget: updatedBudget }
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get budget trend for current month
-router.get('/trend/current', async (req, res, next) => {
-  try {
-    const userId = (req as any).user._id.toString();
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentYear = currentDate.getFullYear();
-
-    const trend = await BudgetService.getBudgetTrend(userId, currentMonth, currentYear);
-
-    res.json({
-      success: true,
-      data: trend
     });
   } catch (error) {
     next(error);
