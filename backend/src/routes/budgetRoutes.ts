@@ -1,6 +1,6 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { BudgetService } from '@/services/budgetService';
-import { authenticate } from '@/middlewares/authMiddleware';
+import { authenticate, AuthRequest } from '@/middlewares/authMiddleware';
 
 const router = Router();
 
@@ -8,9 +8,9 @@ const router = Router();
 router.use(authenticate);
 
 // Get budget trend for current month
-router.get('/trend/current', async (req, res, next) => {
+router.get('/trend/current', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user._id.toString();
+    const userId = (req.user!._id as any).toString();
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
@@ -27,9 +27,9 @@ router.get('/trend/current', async (req, res, next) => {
 });
 
 // Get budget for a month/year
-router.get('/:year/:month', async (req, res, next) => {
+router.get('/:year/:month', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user._id.toString();
+    const userId = (req.user!._id as any).toString();
     const year = parseInt(req.params.year);
     const month = parseInt(req.params.month);
 
@@ -56,9 +56,9 @@ router.get('/:year/:month', async (req, res, next) => {
 });
 
 // Get budget usage for a month/year
-router.get('/usage/:year/:month', async (req, res, next) => {
+router.get('/usage/:year/:month', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user._id.toString();
+    const userId = (req.user!._id as any).toString();
     const year = parseInt(req.params.year);
     const month = parseInt(req.params.month);
 
@@ -80,9 +80,9 @@ router.get('/usage/:year/:month', async (req, res, next) => {
 });
 
 // Update or create budget for a month/year
-router.put('/:year/:month', async (req, res, next) => {
+router.put('/:year/:month', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user._id.toString();
+    const userId = (req.user!._id as any).toString();
     const year = parseInt(req.params.year);
     const month = parseInt(req.params.month);
     const { amount, categories } = req.body;

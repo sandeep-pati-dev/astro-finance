@@ -5,6 +5,22 @@ const budgetService_1 = require("@/services/budgetService");
 const authMiddleware_1 = require("@/middlewares/authMiddleware");
 const router = (0, express_1.Router)();
 router.use(authMiddleware_1.authenticate);
+router.get('/trend/current', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
+        const trend = await budgetService_1.BudgetService.getBudgetTrend(userId, currentMonth, currentYear);
+        res.json({
+            success: true,
+            data: trend
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
 router.get('/:year/:month', async (req, res, next) => {
     try {
         const userId = req.user._id.toString();
@@ -65,22 +81,6 @@ router.put('/:year/:month', async (req, res, next) => {
         res.json({
             success: true,
             data: { budget: updatedBudget }
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/trend/current', async (req, res, next) => {
-    try {
-        const userId = req.user._id.toString();
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1;
-        const currentYear = currentDate.getFullYear();
-        const trend = await budgetService_1.BudgetService.getBudgetTrend(userId, currentMonth, currentYear);
-        res.json({
-            success: true,
-            data: trend
         });
     }
     catch (error) {

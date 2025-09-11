@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { ExpenseService } from '@/services/expenseService';
 import { authenticate, AuthRequest } from '@/middlewares/authMiddleware';
 import { expenseSchema, expenseUpdateSchema } from '@/utils/validators';
@@ -9,7 +9,7 @@ const router = Router();
 router.use(authenticate);
 
 // Get all expenses with optional filtering
-router.get('/', async (req: AuthRequest, res, next) => {
+router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
     const { category, startDate, endDate, limit = '10', page = '1' } = req.query;
@@ -34,7 +34,7 @@ router.get('/', async (req: AuthRequest, res, next) => {
 });
 
 // Get expense summary for all periods (today, week, month)
-router.get('/summary-all', async (req: AuthRequest, res, next) => {
+router.get('/summary-all', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
     const summary = await ExpenseService.getExpenseSummaryAllPeriods(userId);
@@ -48,7 +48,7 @@ router.get('/summary-all', async (req: AuthRequest, res, next) => {
 });
 
 // Get expense summary with percentage changes
-router.get('/summary-with-changes', async (req: AuthRequest, res, next) => {
+router.get('/summary-with-changes', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
     const summary = await ExpenseService.getExpenseSummaryWithChanges(userId);
@@ -62,7 +62,7 @@ router.get('/summary-with-changes', async (req: AuthRequest, res, next) => {
 });
 
 // Get expense by ID
-router.get('/:id', async (req: AuthRequest, res, next) => {
+router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
     const expense = await ExpenseService.getExpenseById(userId, req.params.id);
@@ -82,7 +82,7 @@ router.get('/:id', async (req: AuthRequest, res, next) => {
 });
 
 // Create new expense
-router.post('/', async (req: AuthRequest, res, next) => {
+router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
     const validatedData = expenseSchema.parse(req.body);
