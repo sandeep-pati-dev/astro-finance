@@ -1,10 +1,8 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-const LOCAL_API_URL = 'http://localhost:3001/api';
-const DEPLOYED_API_URL = 'https://astro-finance-1.onrender.com/api';
+const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'production' ? DEPLOYED_API_URL : LOCAL_API_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
