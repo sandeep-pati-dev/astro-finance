@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, TrendingUp, Calendar, DollarSign, BarChart3, Settings, LogOut } from "lucide-react";
+import { Plus, TrendingUp, Calendar, DollarSign, BarChart3, Settings, LogOut, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { expenseApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import DeveloperInfoDialog from "@/components/ui/DeveloperInfoDialog";
 
 interface ExpenseSummary {
   title: string;
@@ -44,6 +45,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [summaryData, setSummaryData] = useState<ExpenseSummaryData>({ today: 0, week: 0, month: 0 });
   const [summaryWithChanges, setSummaryWithChanges] = useState<ExpenseSummaryWithChanges | null>(null);
+  const [showDeveloperDialog, setShowDeveloperDialog] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -191,17 +193,26 @@ const Dashboard = () => {
     <div className="min-h-screen p-4 lg:p-8">
       {/* Header */}
       <motion.header 
-        className="flex justify-between items-center mb-8"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 sm:gap-0"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <div>
-          <h1 className="text-4xl font-bold text-neon mb-2">Welcome back, Sandeep 👋</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-neon mb-2">Welcome back 👋</h1>
           <p className="text-secondary-foreground">Track your expenses like a pro</p>
         </div>
         
         <div className="flex gap-3">
+          <Button
+            onClick={() => setShowDeveloperDialog(true)}
+            variant="outline"
+            size="icon"
+            className="glass glass-hover border-glass-border"
+            title="About Developer"
+          >
+            <Info className="h-5 w-5 text-primary" />
+          </Button>
           <Button
             onClick={() => navigate("/settings")}
             variant="outline"
@@ -225,54 +236,54 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="xl:col-span-3 space-y-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { 
-                title: "Today's Spend", 
-                amount: counts.today, 
-                icon: DollarSign, 
-                color: "text-primary", 
-                change: summaryWithChanges?.today ? `${summaryWithChanges.today.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.today.change)}%` : undefined 
+              {
+                title: "Today's Spend",
+                amount: counts.today,
+                icon: DollarSign,
+                color: "text-primary",
+                change: summaryWithChanges?.today ? `${summaryWithChanges.today.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.today.change)}%` : undefined
               },
-              { 
-                title: "This Week", 
-                amount: counts.week, 
-                icon: Calendar, 
-                color: "text-neon-blue", 
-                change: summaryWithChanges?.week ? `${summaryWithChanges.week.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.week.change)}%` : undefined 
+              {
+                title: "This Week",
+                amount: counts.week,
+                icon: Calendar,
+                color: "text-neon-blue",
+                change: summaryWithChanges?.week ? `${summaryWithChanges.week.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.week.change)}%` : undefined
               },
-              { 
-                title: "This Month", 
-                amount: counts.month, 
-                icon: TrendingUp, 
-                color: "text-accent", 
-                change: summaryWithChanges?.month ? `${summaryWithChanges.month.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.month.change)}%` : undefined 
+              {
+                title: "This Month",
+                amount: counts.month,
+                icon: TrendingUp,
+                color: "text-accent",
+                change: summaryWithChanges?.month ? `${summaryWithChanges.month.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.month.change)}%` : undefined
               }
             ].map((item, index) => (
               <GlassCard
                 key={item.title}
                 delay={index * 0.2}
                 direction={index === 0 ? "left" : index === 2 ? "right" : "up"}
-                className="text-center"
+                className="text-center p-4 sm:p-6"
               >
-                <div className="flex justify-center mb-4">
-                  <div className="p-3 rounded-full bg-gradient-glow">
-                    <item.icon className={`h-8 w-8 ${item.color}`} />
+                <div className="flex justify-center mb-3 sm:mb-4">
+                  <div className="p-2 sm:p-3 rounded-full bg-gradient-glow">
+                    <item.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${item.color}`} />
                   </div>
                 </div>
-                
-                <h3 className="text-sm text-secondary-foreground mb-2">{item.title}</h3>
+
+                <h3 className="text-xs sm:text-sm text-secondary-foreground mb-2">{item.title}</h3>
                 <motion.div
                   key={item.amount}
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="text-3xl font-bold text-foreground mb-2"
+                  className="text-2xl sm:text-3xl font-bold text-foreground mb-2"
                 >
                   {formatCurrency(item.amount)}
                 </motion.div>
-                
+
                 {item.change && (
-                  <span className={`text-sm ${item.change.includes('-') ? 'text-destructive' : 'text-success'}`}>
+                  <span className={`text-xs sm:text-sm ${item.change.includes('-') ? 'text-destructive' : 'text-success'}`}>
                     {item.change}
                   </span>
                 )}
@@ -282,11 +293,11 @@ const Dashboard = () => {
 
           {/* Quick Actions */}
           <GlassCard delay={0.6}>
-            <h2 className="text-xl font-semibold text-neon mb-4 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
+            <h2 className="text-lg sm:text-xl font-semibold text-neon mb-4 flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
               Quick Actions
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { title: "Add Expense", icon: Plus, path: "/add-expense", color: "bg-gradient-primary" },
                 { title: "Analytics", icon: BarChart3, path: "/analytics", color: "bg-gradient-to-r from-accent to-neon-purple" },
@@ -295,15 +306,15 @@ const Dashboard = () => {
                 <motion.button
                   key={action.title}
                   onClick={() => navigate(action.path)}
-                  className={`${action.color} p-4 rounded-xl text-white font-medium hover:glow-intense transition-all duration-300 hover:scale-105`}
+                  className={`${action.color} p-3 sm:p-4 rounded-xl text-white font-medium hover:glow-intense transition-all duration-300 hover:scale-105 text-sm sm:text-base`}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + index * 0.1 }}
                 >
-                  <action.icon className="h-6 w-6 mx-auto mb-2" />
-                  {action.title}
+                  <action.icon className="h-5 w-5 sm:h-6 sm:w-6 mx-auto mb-1 sm:mb-2" />
+                  <span className="block text-xs sm:text-sm">{action.title}</span>
                 </motion.button>
               ))}
             </div>
@@ -311,22 +322,24 @@ const Dashboard = () => {
 
           {/* Recent Expenses Preview */}
           <GlassCard delay={1}>
-            <h2 className="text-xl font-semibold text-neon mb-4">All Activity</h2>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <h2 className="text-lg sm:text-xl font-semibold text-neon mb-4">All Activity</h2>
+            <div className="space-y-2 sm:space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
               {recentExpenses.length > 0 ? (
                 recentExpenses.map((expense, index) => (
                   <motion.div
                     key={index}
-                    className="flex justify-between items-center p-3 rounded-xl bg-background-secondary/50"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 rounded-xl bg-background-secondary/50 gap-2 sm:gap-0"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1.2 + index * 0.1 }}
                   >
-                    <div>
-                      <p className="font-medium">{expense.name}</p>
-                      <p className="text-sm text-secondary-foreground">{expense.category} • {expense.time}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">{expense.name}</p>
+                      <p className="text-xs sm:text-sm text-secondary-foreground truncate">{expense.category} • {expense.time}</p>
                     </div>
-                    <span className="font-bold text-primary">{formatCurrency(expense.amount)}</span>
+                    <span className="font-bold text-primary text-sm sm:text-base self-start sm:self-center">
+                      {formatCurrency(expense.amount)}
+                    </span>
                   </motion.div>
                 ))
               ) : (
@@ -334,7 +347,7 @@ const Dashboard = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.2 }}
-                  className="text-center py-8 text-secondary-foreground"
+                  className="text-center py-6 sm:py-8 text-secondary-foreground"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2">
@@ -343,10 +356,10 @@ const Dashboard = () => {
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full"
                       />
-                      Loading expenses...
+                      <span className="text-sm sm:text-base">Loading expenses...</span>
                     </div>
                   ) : (
-                    "No recent expenses found"
+                    <span className="text-sm sm:text-base">No recent expenses found</span>
                   )}
                 </motion.div>
               )}
@@ -357,7 +370,7 @@ const Dashboard = () => {
 
       {/* Floating Add Button */}
       <motion.div
-        className="fixed bottom-8 right-8 z-50"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
@@ -365,11 +378,17 @@ const Dashboard = () => {
         <Button
           onClick={() => navigate("/add-expense")}
           size="lg"
-          className="bg-gradient-primary hover:glow-intense text-primary-foreground rounded-full p-4 shadow-card hover:scale-110 transition-all duration-300"
+          className="bg-gradient-primary hover:glow-intense text-primary-foreground rounded-full p-3 sm:p-4 shadow-card hover:scale-110 transition-all duration-300"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
         </Button>
       </motion.div>
+
+      {/* Developer Info Dialog */}
+      <DeveloperInfoDialog
+        isOpen={showDeveloperDialog}
+        onClose={() => setShowDeveloperDialog(false)}
+      />
     </div>
   );
 };

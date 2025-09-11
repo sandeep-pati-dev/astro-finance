@@ -24,7 +24,15 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS middleware
-const allowedOrigins = [config.frontendUrl, 'http://localhost:8080'];
+const allowedOrigins = [
+  config.frontendUrl,
+  'http://localhost:8080',
+  'http://localhost:3000',
+  'http://127.0.0.1:8080',
+  'http://127.0.0.1:3000',
+  'https://astro-finance-1.onrender.com', // Add your Render domain
+  'https://astro-finance-frontend.onrender.com' // Add your frontend Render domain if different
+];
 
 console.log('Allowed CORS origins:', allowedOrigins);
 
@@ -35,7 +43,7 @@ app.use(cors({
       callback(null, true);
       return;
     }
-    
+
     // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -45,7 +53,9 @@ app.use(cors({
     }
   },
   credentials: true,
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Body parsing middleware

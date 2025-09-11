@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+
 import { authApi } from "./lib/api";
 import { toast } from "@/hooks/use-toast";
 
@@ -117,6 +118,7 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     // Check if user is already authenticated
