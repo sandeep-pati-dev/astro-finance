@@ -55,6 +55,11 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api', routes);
 
+// Favicon route to avoid 404 errors
+app.get('/favicon.ico', (_req: Request, res: Response) => {
+  res.status(204).end();
+});
+
 // Root endpoint to avoid 404 on "/"
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({ message: 'Welcome to the Astro Finance API' });

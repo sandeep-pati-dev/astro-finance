@@ -42,6 +42,9 @@ app.use((0, cors_1.default)({
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use('/api', routes_1.default);
+app.get('/favicon.ico', (_req, res) => {
+    res.status(204).end();
+});
 app.get('/', (_req, res) => {
     res.status(200).json({ message: 'Welcome to the Astro Finance API' });
 });
