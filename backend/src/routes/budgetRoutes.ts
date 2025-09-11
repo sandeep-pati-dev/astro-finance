@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { BudgetService } from '@/services/budgetService';
 import { authenticate, AuthRequest } from '@/middlewares/authMiddleware';
 
