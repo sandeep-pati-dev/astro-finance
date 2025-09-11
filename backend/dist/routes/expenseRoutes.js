@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const expenseService_1 = require("@/services/expenseService");
-const authMiddleware_1 = require("@/middlewares/authMiddleware");
-const validators_1 = require("@/utils/validators");
+const expenseService_1 = require("../services/expenseService");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const validators_1 = require("../utils/validators");
 const router = (0, express_1.Router)();
 router.use(authMiddleware_1.authenticate);
 router.get('/', async (req, res, next) => {

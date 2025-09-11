@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BudgetService = void 0;
-const Budget_1 = __importDefault(require("@/models/Budget"));
+const Budget_1 = __importDefault(require("../models/Budget"));
 const expenseService_1 = require("./expenseService");
 const mongoose_1 = require("mongoose");
 class BudgetService {

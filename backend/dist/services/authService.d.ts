@@ -1,5 +1,5 @@
-import { IUser } from '@/models/User';
-import { RegisterInput, LoginInput } from '@/utils/validators';
+import { IUser } from '../models/User';
+import { RegisterInput, LoginInput } from '../utils/validators';
 export declare class AuthService {
     static register(userData: RegisterInput): Promise<{
         user: IUser;

@@ -1,5 +1,5 @@
-import { IExpense } from '@/models/Expense';
-import { ExpenseInput, ExpenseUpdateInput } from '@/utils/validators';
+import { IExpense } from '../models/Expense';
+import { ExpenseInput, ExpenseUpdateInput } from '../utils/validators';
 export declare class ExpenseService {
     static createExpense(userId: string, expenseData: ExpenseInput): Promise<IExpense>;
     static getExpenses(userId: string, filters?: {

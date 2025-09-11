@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
-const User_1 = __importDefault(require("@/models/User"));
-const authMiddleware_1 = require("@/middlewares/authMiddleware");
+const User_1 = __importDefault(require("../models/User"));
+const authMiddleware_1 = require("../middlewares/authMiddleware");
 class AuthService {
     static async register(userData) {
         const existingUser = await User_1.default.findOne({ email: userData.email });

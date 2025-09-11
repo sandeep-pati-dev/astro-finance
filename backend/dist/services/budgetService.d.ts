@@ -1,4 +1,4 @@
-import { IBudget } from '@/models/Budget';
+import { IBudget } from '../models/Budget';
 export declare class BudgetService {
     static getOrCreateBudget(userId: string, month: number, year: number, defaultAmount?: number): Promise<IBudget>;
     static updateBudget(userId: string, month: number, year: number, amount: number, categories?: {

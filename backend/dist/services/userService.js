@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
-const User_1 = __importDefault(require("@/models/User"));
+const User_1 = __importDefault(require("../models/User"));
 const expenseService_1 = require("./expenseService");
 class UserService {
     static async updateUserProfile(userId, updateData) {

@@ -55,6 +55,11 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api', routes);
 
+// Root endpoint to avoid 404 on "/"
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({ message: 'Welcome to the Astro Finance API' });
+});
+
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
