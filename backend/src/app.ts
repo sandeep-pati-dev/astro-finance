@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -29,7 +29,7 @@ const allowedOrigins = [config.frontendUrl, 'http://localhost:8080'];
 console.log('Allowed CORS origins:', allowedOrigins);
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) {
       callback(null, true);
@@ -56,7 +56,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', routes);
 
 // Health check endpoint
-app.get('/health', (_req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 

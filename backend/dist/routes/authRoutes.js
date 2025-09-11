@@ -33,7 +33,12 @@ router.post('/login', async (req, res, next) => {
 });
 router.get('/me', authMiddleware_1.authenticate, async (req, res, next) => {
     try {
-        const user = await authService_1.AuthService.getUserById(req.user._id.toString());
+        const userId = typeof req.user === 'object' && req.user !== null && '_id' in req.user ? req.user._id : null;
+        if (!userId) {
+            res.status(404).json({ success: false, error: 'User not found' });
+            return;
+        }
+        const user = await authService_1.AuthService.getUserById(userId.toString());
         if (!user) {
             res.status(404).json({ success: false, error: 'User not found' });
             return;
