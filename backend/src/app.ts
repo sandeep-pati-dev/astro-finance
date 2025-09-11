@@ -2,10 +2,10 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import routes from '@/routes';
-import { errorHandler, notFound } from '@/middlewares/errorHandler';
-import connectDB from '@/utils/database';
-import config from '@/config';
+import routes from './routes';
+import { errorHandler, notFound } from './middlewares/errorHandler';
+import connectDB from './utils/database';
+import config from './config';
 
 const app = express();
 

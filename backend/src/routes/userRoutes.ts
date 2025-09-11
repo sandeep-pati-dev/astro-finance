@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { UserService } from '@/services/userService';
-import { authenticate } from '@/middlewares/authMiddleware';
-import { userProfileSchema, passwordChangeSchema } from '@/utils/validators';
+import { UserService } from '../services/userService';
+import { authenticate } from '../middlewares/authMiddleware';
+import { userProfileSchema, passwordChangeSchema } from '../utils/validators';
 
 const router = Router();
 

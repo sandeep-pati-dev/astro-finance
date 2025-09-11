@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { AuthService } from '@/services/authService';
-import { authenticate, AuthRequest } from '@/middlewares/authMiddleware';
-import { registerSchema, loginSchema } from '@/utils/validators';
+import { AuthService } from '../services/authService';
+import { authenticate, AuthRequest } from '../middlewares/authMiddleware';
+import { registerSchema, loginSchema } from '../utils/validators';
 
 const router = Router();
 

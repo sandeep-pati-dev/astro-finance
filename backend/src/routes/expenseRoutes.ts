@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
-import { ExpenseService } from '@/services/expenseService';
-import { authenticate, AuthRequest } from '@/middlewares/authMiddleware';
-import { expenseSchema, expenseUpdateSchema } from '@/utils/validators';
+import { ExpenseService } from '../services/expenseService';
+import { authenticate, AuthRequest } from '../middlewares/authMiddleware';
+import { expenseSchema, expenseUpdateSchema } from '../utils/validators';
 
 const router = Router();
 

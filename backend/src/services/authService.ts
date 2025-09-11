@@ -1,6 +1,6 @@
-import User, { IUser } from '@/models/User';
-import { RegisterInput, LoginInput } from '@/utils/validators';
-import { generateToken } from '@/middlewares/authMiddleware';
+import User, { IUser } from '../models/User';
+import { RegisterInput, LoginInput } from '../utils/validators';
+import { generateToken } from '../middlewares/authMiddleware';
 
 export class AuthService {
   static async register(userData: RegisterInput): Promise<{ user: IUser; token: string }> {

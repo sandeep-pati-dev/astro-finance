@@ -1,4 +1,4 @@
-import Budget, { IBudget } from '@/models/Budget';
+import Budget, { IBudget } from '../models/Budget';
 import { ExpenseService } from './expenseService';
 import { Types } from 'mongoose';
 

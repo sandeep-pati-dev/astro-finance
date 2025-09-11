@@ -1,5 +1,5 @@
-import User, { IUser } from '@/models/User';
-import { UserProfileInput } from '@/utils/validators';
+import User, { IUser } from '../models/User';
+import { UserProfileInput } from '../utils/validators';
 import { ExpenseService } from './expenseService';
 
 export class UserService {

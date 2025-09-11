@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
-import { BudgetService } from '@/services/budgetService';
-import { authenticate, AuthRequest } from '@/middlewares/authMiddleware';
+import { BudgetService } from '../services/budgetService';
+import { authenticate, AuthRequest } from '../middlewares/authMiddleware';
 
 const router = Router();
 

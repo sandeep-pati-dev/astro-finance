@@ -1,5 +1,5 @@
- import Expense, { IExpense } from '@/models/Expense';
-import { ExpenseInput, ExpenseUpdateInput } from '@/utils/validators';
+import Expense, { IExpense } from '../models/Expense';
+import { ExpenseInput, ExpenseUpdateInput } from '../utils/validators';
 import { Types } from 'mongoose';
 
 export class ExpenseService {
