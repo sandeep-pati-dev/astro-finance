@@ -31,7 +31,8 @@ const allowedOrigins = [
   'http://127.0.0.1:8080',
   'http://127.0.0.1:3000',
   'https://astro-finance-1.onrender.com', // Add your Render domain
-  'https://astro-finance-frontend.onrender.com' // Add your frontend Render domain if different
+  'https://astro-finance-frontend.onrender.com', // Add your frontend Render domain if different
+  'https://astro-finance.vercel.app' // Add your Vercel frontend domain
 ];
 
 console.log('Allowed CORS origins:', allowedOrigins);
