@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, TrendingUp, Calendar, DollarSign, BarChart3, Settings, LogOut, Info } from "lucide-react";
+import { Plus, TrendingUp, Calendar, IndianRupee, BarChart3, Settings, LogOut, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
@@ -261,7 +261,7 @@ const Dashboard = () => {
               {
                 title: "Today's Spend",
                 amount: counts.today,
-                icon: DollarSign,
+                icon: IndianRupee,
                 color: "text-primary",
                 change: summaryWithChanges?.today ? `${summaryWithChanges.today.change > 0 ? '+' : ''}${Math.round(summaryWithChanges.today.change)}%` : undefined
               },
