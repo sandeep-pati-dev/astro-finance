@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, DollarSign, Tag, Calendar, FileText, Check } from "lucide-react";
+import { ArrowLeft, IndianRupee, Tag, Calendar, FileText, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -162,7 +162,7 @@ const AddExpense = () => {
                   Amount *
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 h-5 w-5 text-primary" />
+                  <IndianRupee className="absolute left-3 top-3 h-5 w-5 text-primary" />
                   <Input
                     type="number"
                     placeholder="0.00"
