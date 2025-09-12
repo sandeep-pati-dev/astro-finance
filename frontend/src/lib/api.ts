@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+// const API_BASE_URL = 'http://localhost:3001/api';
 
-// const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
+const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
 
 
 const api = axios.create({
