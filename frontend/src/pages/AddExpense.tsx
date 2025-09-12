@@ -23,12 +23,20 @@ const AddExpense = () => {
 
   const categories = [
     { value: "food", label: "🍔 Food & Dining", color: "text-orange-400" },
+    { value: "groceries", label: "🛒 Groceries", color: "text-green-500" },
     { value: "transport", label: "🚗 Transport", color: "text-blue-400" },
+    { value: "travel", label: "✈️ Travel", color: "text-blue-500" },
     { value: "shopping", label: "🛍️ Shopping", color: "text-pink-400" },
+    { value: "personal_care", label: "💄 Personal Care", color: "text-pink-500" },
     { value: "entertainment", label: "🎬 Entertainment", color: "text-purple-400" },
+    { value: "subscriptions", label: "📺 Subscriptions", color: "text-purple-500" },
     { value: "bills", label: "💡 Bills & Utilities", color: "text-yellow-400" },
     { value: "healthcare", label: "🏥 Healthcare", color: "text-red-400" },
+    { value: "insurance", label: "🛡️ Insurance", color: "text-red-500" },
     { value: "education", label: "📚 Education", color: "text-green-400" },
+    { value: "gifts", label: "🎁 Gifts", color: "text-red-600" },
+    { value: "savings", label: "💰 Savings", color: "text-yellow-500" },
+    { value: "investments", label: "📈 Investments", color: "text-green-600" },
     { value: "other", label: "📦 Other", color: "text-gray-400" }
   ];
 
