@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { expenseApi } from "@/lib/api";
+import { expenseApi, userApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import DeveloperInfoDialog from "@/components/ui/DeveloperInfoDialog";
 
@@ -50,6 +50,26 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    // Show developer dialog for new users (created within 1 day) who haven't seen it before
+    if (user && user.createdAt && user.hasSeenDeveloperDialog === false) {
+      setShowDeveloperDialog(true);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (showDeveloperDialog) {
+      // After showing the dialog, mark it as seen in backend and localStorage
+      userApi.markDeveloperDialogSeen()
+        .then(() => {
+          localStorage.setItem('developerDialogShown', 'true');
+        })
+        .catch((error) => {
+          console.error('Failed to mark developer dialog as seen:', error);
+        });
+    }
+  }, [showDeveloperDialog]);
 
   // Real-time updates for time display
   useEffect(() => {

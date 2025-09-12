@@ -7,6 +7,8 @@ import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { authApi } from "@/lib/api";
+import { userApi } from "@/lib/api";
+import DeveloperInfoDialog from "@/components/ui/DeveloperInfoDialog";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,6 +17,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeveloperDialogOpen, setIsDeveloperDialogOpen] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -49,6 +52,8 @@ const Login = () => {
             title: "Account created!",
             description: "Successfully signed up",
           });
+          // Immediately mark developer dialog as not seen (false) in backend for new user
+          await userApi.markDeveloperDialogSeen();
           navigate("/dashboard");
         } else {
           toast({
@@ -235,7 +240,22 @@ const Login = () => {
           </motion.div>
         </form>
 
-        <motion.div 
+        <motion.div
+          className="text-center mt-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Button
+            onClick={() => setIsDeveloperDialogOpen(true)}
+            variant="outline"
+            className="bg-transparent border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            Meet the Developer
+          </Button>
+        </motion.div>
+
+        <motion.div
           className="text-center mt-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -249,6 +269,11 @@ const Login = () => {
           </button>
         </motion.div>
       </motion.div>
+
+      <DeveloperInfoDialog
+        isOpen={isDeveloperDialogOpen}
+        onClose={() => setIsDeveloperDialogOpen(false)}
+      />
     </div>
   );
 };

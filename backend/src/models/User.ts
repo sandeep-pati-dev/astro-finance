@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  hasSeenDeveloperDialog: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -28,6 +29,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       trim: true
+    },
+    hasSeenDeveloperDialog: {
+      type: Boolean,
+      default: false
     }
   },
   {

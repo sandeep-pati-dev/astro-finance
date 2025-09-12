@@ -52,7 +52,7 @@ const DeveloperInfoDialog: React.FC<DeveloperInfoDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass glass-hover border-glass-border max-w-md mx-auto">
+      <DialogContent className="glass border-glass-border max-w-md mx-auto">
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Avatar className="w-24 h-24 border-4 border-primary/20">
@@ -81,9 +81,9 @@ const DeveloperInfoDialog: React.FC<DeveloperInfoDialogProps> = ({
                   <GraduationCap className="w-4 h-4" />
                   <span>{developerInfo.education}</span>
                 </div>
-                <p className="text-sm text-secondary-foreground mt-1">
+                <div className="text-sm text-secondary-foreground mt-1">
                   {developerInfo.university}
-                </p>
+                </div>
               </div>
 
               <div className="flex justify-center gap-4 mt-6">

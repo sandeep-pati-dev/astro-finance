@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
-// const API_BASE_URL = 'http://localhost:3001/api';
+// const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
 
 
 const api = axios.create({
@@ -166,13 +166,13 @@ export const expenseApi = {
 export const userApi = {
   getProfile: () =>
     api.get<ApiResponse<{ user: any }>>('/users/profile'),
-  
+
   updateProfile: (profileData: {
     name?: string;
     email?: string;
   }) =>
     api.put<ApiResponse<{ user: any }>>('/users/profile', profileData),
-  
+
   deleteUser: () =>
     api.delete<ApiResponse<{ message: string }>>('/users'),
 
@@ -182,6 +182,9 @@ export const userApi = {
     confirmNewPassword: string;
   }) =>
     api.post<ApiResponse<{ message: string }>>('/users/change-password', passwordData),
+
+  markDeveloperDialogSeen: () =>
+    api.post<ApiResponse<{ user: any }>>('/users/seen-developer-dialog'),
 
   exportData: (year: number, month: number) =>
     api.get<string>(`/users/export-data/${year}/${month}`, {

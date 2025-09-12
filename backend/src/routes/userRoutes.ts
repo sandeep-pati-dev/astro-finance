@@ -95,6 +95,27 @@ router.post('/change-password', async (req, res, next) => {
   }
 });
 
+  // Mark developer dialog as seen
+  router.post('/seen-developer-dialog', async (req, res, next) => {
+    try {
+      const userId = (req as any).user._id.toString();
+      const user = await UserService.updateUserProfile(userId, { hasSeenDeveloperDialog: true });
+
+      if (!user) {
+        res.status(404).json({ success: false, error: 'User not found' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: { user }
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+
 // Export user data for a given month
 router.get('/export-data/:year/:month', async (req, res, next) => {
   try {
