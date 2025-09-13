@@ -76,6 +76,23 @@ router.post('/change-password', async (req, res, next) => {
         next(error);
     }
 });
+router.post('/seen-developer-dialog', async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+        const user = await userService_1.UserService.updateUserProfile(userId, { hasSeenDeveloperDialog: true });
+        if (!user) {
+            res.status(404).json({ success: false, error: 'User not found' });
+            return;
+        }
+        res.json({
+            success: true,
+            data: { user }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
 router.get('/export-data/:year/:month', async (req, res, next) => {
     try {
         const userId = req.user._id.toString();

@@ -24,45 +24,48 @@ export declare const loginSchema: z.ZodObject<{
 }>;
 export declare const expenseSchema: z.ZodObject<{
     amount: z.ZodNumber;
-    category: z.ZodEnum<["food", "transport", "shopping", "entertainment", "bills", "healthcare", "education", "other"]>;
+    category: z.ZodEnum<["food", "groceries", "transport", "travel", "shopping", "personal_care", "entertainment", "subscriptions", "bills", "healthcare", "insurance", "education", "gifts", "savings", "investments", "other"]>;
     date: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodOptional<z.ZodDate>]>;
     notes: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     amount: number;
-    category: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other";
+    category: "food" | "groceries" | "transport" | "travel" | "shopping" | "personal_care" | "entertainment" | "subscriptions" | "bills" | "healthcare" | "insurance" | "education" | "gifts" | "savings" | "investments" | "other";
     date?: string | Date | undefined;
     notes?: string | undefined;
 }, {
     amount: number;
-    category: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other";
+    category: "food" | "groceries" | "transport" | "travel" | "shopping" | "personal_care" | "entertainment" | "subscriptions" | "bills" | "healthcare" | "insurance" | "education" | "gifts" | "savings" | "investments" | "other";
     date?: string | Date | undefined;
     notes?: string | undefined;
 }>;
 export declare const expenseUpdateSchema: z.ZodObject<{
     amount: z.ZodOptional<z.ZodNumber>;
-    category: z.ZodOptional<z.ZodEnum<["food", "transport", "shopping", "entertainment", "bills", "healthcare", "education", "other"]>>;
+    category: z.ZodOptional<z.ZodEnum<["food", "groceries", "transport", "travel", "shopping", "personal_care", "entertainment", "subscriptions", "bills", "healthcare", "insurance", "education", "gifts", "savings", "investments", "other"]>>;
     date: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodOptional<z.ZodDate>]>>;
     notes: z.ZodOptional<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     date?: string | Date | undefined;
     amount?: number | undefined;
-    category?: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other" | undefined;
+    category?: "food" | "groceries" | "transport" | "travel" | "shopping" | "personal_care" | "entertainment" | "subscriptions" | "bills" | "healthcare" | "insurance" | "education" | "gifts" | "savings" | "investments" | "other" | undefined;
     notes?: string | undefined;
 }, {
     date?: string | Date | undefined;
     amount?: number | undefined;
-    category?: "food" | "transport" | "shopping" | "entertainment" | "bills" | "healthcare" | "education" | "other" | undefined;
+    category?: "food" | "groceries" | "transport" | "travel" | "shopping" | "personal_care" | "entertainment" | "subscriptions" | "bills" | "healthcare" | "insurance" | "education" | "gifts" | "savings" | "investments" | "other" | undefined;
     notes?: string | undefined;
 }>;
 export declare const userProfileSchema: z.ZodObject<{
     name: z.ZodOptional<z.ZodString>;
     email: z.ZodOptional<z.ZodString>;
+    hasSeenDeveloperDialog: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     email?: string | undefined;
     name?: string | undefined;
+    hasSeenDeveloperDialog?: boolean | undefined;
 }, {
     email?: string | undefined;
     name?: string | undefined;
+    hasSeenDeveloperDialog?: boolean | undefined;
 }>;
 export declare const passwordChangeSchema: z.ZodEffects<z.ZodObject<{
     currentPassword: z.ZodString;

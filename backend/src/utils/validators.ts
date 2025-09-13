@@ -15,7 +15,7 @@ export const loginSchema = z.object({
 // Expense validation schemas
 export const expenseSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
-  category: z.enum(['food', 'transport', 'shopping', 'entertainment', 'bills', 'healthcare', 'education', 'other']),
+  category: z.enum(['food', 'groceries', 'transport', 'travel', 'shopping', 'personal_care', 'entertainment', 'subscriptions', 'bills', 'healthcare', 'insurance', 'education', 'gifts', 'savings', 'investments', 'other']),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, expected YYYY-MM-DD').optional().or(z.date().optional()),
   notes: z.string().max(500, 'Notes must be less than 500 characters').optional()
 });

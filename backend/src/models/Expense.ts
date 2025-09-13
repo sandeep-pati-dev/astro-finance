@@ -25,7 +25,7 @@ const expenseSchema = new Schema<IExpense>(
     category: {
       type: String,
       required: true,
-      enum: ['food', 'transport', 'shopping', 'entertainment', 'bills', 'healthcare', 'education', 'other']
+      enum: ['food', 'groceries', 'transport', 'travel', 'shopping', 'personal_care', 'entertainment', 'subscriptions', 'bills', 'healthcare', 'insurance', 'education', 'gifts', 'savings', 'investments', 'other']
     },
     date: {
       type: Date,

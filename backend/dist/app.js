@@ -20,7 +20,16 @@ const limiter = (0, express_rate_limit_1.default)({
     message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
-const allowedOrigins = [config_1.default.frontendUrl, 'http://localhost:8080'];
+const allowedOrigins = [
+    config_1.default.frontendUrl,
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'http://127.0.0.1:8080',
+    'http://127.0.0.1:3000',
+    'https://astro-finance-1.onrender.com',
+    'https://astro-finance-frontend.onrender.com',
+    'https://astro-finance.vercel.app'
+];
 console.log('Allowed CORS origins:', allowedOrigins);
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
@@ -37,7 +46,9 @@ app.use((0, cors_1.default)({
         }
     },
     credentials: true,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));

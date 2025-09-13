@@ -1,50 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Expense Tracker Design System - Dark Navy + Teal Glassmorphism */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
     /* Dark Navy + Black Base */
-    --background: 220 25% 6%;              /* Deep navy background */
-    --background-secondary: 220 30% 4%;    /* Darker navy for depth */
-    --foreground: 210 15% 95%;             /* Soft white text */
+    --background: 220 25% 6%;
+    /* Deep navy background */
+    --background-secondary: 220 30% 4%;
+    /* Darker navy for depth */
+    --foreground: 210 15% 95%;
+    /* Soft white text */
 
     /* Glassmorphism Cards */
-    --glass: 220 25% 8% / 0.6;             /* Semi-transparent navy */
-    --glass-border: 180 100% 70% / 0.3;    /* Teal glow border */
-    --glass-hover: 220 25% 10% / 0.8;      /* Lighter on hover */
+    --glass: 220 25% 8% / 0.6;
+    /* Semi-transparent navy */
+    --glass-border: 180 100% 70% / 0.3;
+    /* Teal glow border */
+    --glass-hover: 220 25% 10% / 0.8;
+    /* Lighter on hover */
 
     /* Teal Accent System */
-    --primary: 180 100% 50%;               /* Bright teal */
-    --primary-glow: 180 100% 70%;          /* Lighter teal for glow */
-    --primary-dark: 180 100% 30%;          /* Darker teal */
-    --primary-foreground: 220 25% 6%;      /* Dark text on teal */
+    --primary: 180 100% 50%;
+    /* Bright teal */
+    --primary-glow: 180 100% 70%;
+    /* Lighter teal for glow */
+    --primary-dark: 180 100% 30%;
+    /* Darker teal */
+    --primary-foreground: 220 25% 6%;
+    /* Dark text on teal */
 
     /* Secondary Colors */
-    --secondary: 220 15% 15%;              /* Subtle gray-navy */
-    --secondary-foreground: 210 15% 85%;   /* Light gray text */
+    --secondary: 220 15% 15%;
+    /* Subtle gray-navy */
+    --secondary-foreground: 210 15% 85%;
+    /* Light gray text */
 
     /* Accent & Highlights */
-    --accent: 270 100% 70%;                /* Purple accent */
-    --accent-foreground: 210 15% 95%;      /* White text on purple */
-    --neon-blue: 200 100% 60%;             /* Neon blue highlight */
-    --neon-purple: 280 100% 70%;           /* Neon purple */
+    --accent: 270 100% 70%;
+    /* Purple accent */
+    --accent-foreground: 210 15% 95%;
+    /* White text on purple */
+    --neon-blue: 200 100% 60%;
+    /* Neon blue highlight */
+    --neon-purple: 280 100% 70%;
+    /* Neon purple */
 
     /* UI Elements */
-    --card: 220 25% 8% / 0.4;              /* Card background */
-    --card-foreground: 210 15% 95%;        /* Card text */
-    --border: 180 50% 50% / 0.2;           /* Subtle teal borders */
-    --input: 220 25% 12%;                  /* Input background */
-    --ring: 180 100% 50%;                  /* Focus ring teal */
+    --card: 220 25% 8% / 0.4;
+    /* Card background */
+    --card-foreground: 210 15% 95%;
+    /* Card text */
+    --border: 180 50% 50% / 0.2;
+    /* Subtle teal borders */
+    --input: 220 25% 12%;
+    /* Input background */
+    --ring: 180 100% 50%;
+    /* Focus ring teal */
 
     /* Status Colors */
-    --success: 140 70% 60%;                /* Green for success */
-    --warning: 45 100% 65%;                /* Amber for warnings */
-    --destructive: 0 85% 65%;              /* Red for errors */
-    --destructive-foreground: 210 15% 95%; /* White text on red */
+    --success: 140 70% 60%;
+    /* Green for success */
+    --warning: 45 100% 65%;
+    /* Amber for warnings */
+    --destructive: 0 85% 65%;
+    /* Red for errors */
+    --destructive-foreground: 210 15% 95%;
+    /* White text on red */
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(180 100% 50%), hsl(200 100% 60%));
@@ -56,8 +82,9 @@
     --shadow-glow: 0 0 30px hsl(180 100% 70% / 0.3);
     --shadow-intense: 0 0 50px hsl(180 100% 50% / 0.5);
     --shadow-card: 0 8px 32px hsl(220 30% 4% / 0.6);
-    
-    --radius: 1rem;  /* 2xl rounded corners */
+
+    --radius: 1rem;
+    /* 2xl rounded corners */
   }
 }
 
@@ -125,7 +152,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: 
+    background-image:
       radial-gradient(2px 2px at 40px 60px, hsl(var(--primary) / 0.3), transparent),
       radial-gradient(2px 2px at 90px 40px, hsl(var(--accent) / 0.3), transparent),
       radial-gradient(1px 1px at 160px 120px, hsl(var(--neon-blue) / 0.2), transparent);
@@ -135,8 +162,15 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
   }
 
   /* Smooth Scrollbar */
