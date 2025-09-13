@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-// const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
-const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
+// const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
 
 
 const api = axios.create({
@@ -196,7 +196,7 @@ export const userApi = {
 export const budgetApi = {
   getBudget: (year: number, month: number) =>
     api.get<ApiResponse<{ budget: any }>>(`/budgets/${year}/${month}`),
-  
+
   getBudgetUsage: (year: number, month: number) =>
     api.get<ApiResponse<{
       budget: any;
@@ -205,13 +205,13 @@ export const budgetApi = {
       categorySpending: { [category: string]: number };
       categoryUsage: { [category: string]: number };
     }>>(`/budgets/usage/${year}/${month}`),
-  
+
   updateBudget: (year: number, month: number, data: {
     amount: number;
     categories?: { [category: string]: number };
   }) =>
     api.put<ApiResponse<{ budget: any }>>(`/budgets/${year}/${month}`, data),
-  
+
   getBudgetTrend: () =>
     api.get<ApiResponse<{
       currentSpending: number;
@@ -219,6 +219,49 @@ export const budgetApi = {
       percentageChange: number;
       trend: 'increase' | 'decrease' | 'stable';
     }>>('/budgets/trend/current'),
+};
+
+// Goal endpoints
+export const goalApi = {
+  getGoals: () =>
+    api.get<ApiResponse<{ goals: any[] }>>('/goals'),
+
+  getGoalById: (goalId: string) =>
+    api.get<ApiResponse<{ goal: any }>>(`/goals/${goalId}`),
+
+  getGoalProgress: (goalId: string) =>
+    api.get<ApiResponse<{ progress: any }>>(`/goals/${goalId}/progress`),
+
+  getAllGoalsProgress: () =>
+    api.get<ApiResponse<{ goalsProgress: any[] }>>('/goals/progress'),
+
+  createGoal: (goalData: {
+    title: string;
+    targetAmount: number;
+    targetDate: string;
+    currentSaved?: number;
+  }) =>
+    api.post<ApiResponse<{ goal: any }>>('/goals', goalData),
+
+  updateGoal: (goalId: string, goalData: Partial<{
+    title: string;
+    targetAmount: number;
+    targetDate: string;
+    currentSaved: number;
+  }>) =>
+    api.put<ApiResponse<{ goal: any }>>(`/goals/${goalId}`, goalData),
+
+  deleteGoal: (goalId: string) =>
+    api.delete<ApiResponse<{ message: string }>>(`/goals/${goalId}`),
+};
+
+// Prediction endpoints
+export const predictionApi = {
+  getPredictions: () =>
+    api.get<ApiResponse<{ predictions: any }>>('/predictions'),
+
+  getCategoryPredictions: () =>
+    api.get<ApiResponse<{ categoryPredictions: any }>>('/predictions/categories'),
 };
 
 export default api;

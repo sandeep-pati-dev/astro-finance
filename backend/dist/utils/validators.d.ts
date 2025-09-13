@@ -25,7 +25,7 @@ export declare const loginSchema: z.ZodObject<{
 export declare const expenseSchema: z.ZodObject<{
     amount: z.ZodNumber;
     category: z.ZodEnum<["food", "groceries", "transport", "travel", "shopping", "personal_care", "entertainment", "subscriptions", "bills", "healthcare", "insurance", "education", "gifts", "savings", "investments", "other"]>;
-    date: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodOptional<z.ZodDate>]>;
+    date: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodDate]>>;
     notes: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     amount: number;
@@ -41,7 +41,7 @@ export declare const expenseSchema: z.ZodObject<{
 export declare const expenseUpdateSchema: z.ZodObject<{
     amount: z.ZodOptional<z.ZodNumber>;
     category: z.ZodOptional<z.ZodEnum<["food", "groceries", "transport", "travel", "shopping", "personal_care", "entertainment", "subscriptions", "bills", "healthcare", "insurance", "education", "gifts", "savings", "investments", "other"]>>;
-    date: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodOptional<z.ZodDate>]>>;
+    date: z.ZodOptional<z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodDate]>>>;
     notes: z.ZodOptional<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     date?: string | Date | undefined;
@@ -87,6 +87,38 @@ export declare const passwordChangeSchema: z.ZodEffects<z.ZodObject<{
     currentPassword: string;
     newPassword: string;
     confirmNewPassword: string;
+}>;
+export declare const goalSchema: z.ZodObject<{
+    title: z.ZodString;
+    targetAmount: z.ZodNumber;
+    targetDate: z.ZodEffects<z.ZodString, string, string>;
+    currentSaved: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    title: string;
+    targetAmount: number;
+    targetDate: string;
+    currentSaved?: number | undefined;
+}, {
+    title: string;
+    targetAmount: number;
+    targetDate: string;
+    currentSaved?: number | undefined;
+}>;
+export declare const goalUpdateSchema: z.ZodObject<{
+    title: z.ZodOptional<z.ZodString>;
+    targetAmount: z.ZodOptional<z.ZodNumber>;
+    targetDate: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    currentSaved: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
+}, "strip", z.ZodTypeAny, {
+    title?: string | undefined;
+    targetAmount?: number | undefined;
+    targetDate?: string | undefined;
+    currentSaved?: number | undefined;
+}, {
+    title?: string | undefined;
+    targetAmount?: number | undefined;
+    targetDate?: string | undefined;
+    currentSaved?: number | undefined;
 }>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

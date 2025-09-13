@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, TrendingUp, Calendar, IndianRupee, BarChart3, Settings, LogOut, Info } from "lucide-react";
+import { Plus, TrendingUp, Calendar, IndianRupee, BarChart3, Settings, LogOut, Info, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
@@ -319,24 +319,26 @@ const Dashboard = () => {
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[
-                { title: "Add Expense", icon: Plus, path: "/add-expense", color: "bg-gradient-primary" },
-                { title: "Analytics", icon: BarChart3, path: "/analytics", color: "bg-gradient-to-r from-accent to-neon-purple" },
-                { title: "Settings", icon: Settings, path: "/settings", color: "bg-gradient-to-r from-neon-blue to-primary" },
-              ].map((action, index) => (
-                <motion.button
-                  key={action.title}
-                  onClick={() => navigate(action.path)}
-                  className={`${action.color} p-3 sm:p-4 rounded-xl text-white font-medium hover:glow-intense transition-all duration-300 hover:scale-105 text-sm sm:text-base`}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                >
-                  <action.icon className="h-5 w-5 sm:h-6 sm:w-6 mx-auto mb-1 sm:mb-2" />
-                  <span className="block text-xs sm:text-sm">{action.title}</span>
-                </motion.button>
-              ))}
+          { title: "Add Expense", icon: Plus, path: "/add-expense", color: "bg-gradient-primary" },
+          { title: "Analytics", icon: BarChart3, path: "/analytics", color: "bg-gradient-to-r from-accent to-neon-purple" },
+          { title: "Settings", icon: Settings, path: "/settings", color: "bg-gradient-to-r from-neon-blue to-primary" },
+          { title: "Goals", icon: Target, path: "/goals", color: "bg-gradient-to-r from-green-500 to-green-700" },
+          { title: "Predictions", icon: TrendingUp, path: "/predictions", color: "bg-gradient-to-r from-purple-600 to-purple-800" },
+        ].map((action, index) => (
+          <motion.button
+            key={action.title}
+            onClick={() => navigate(action.path)}
+            className={`${action.color} p-3 sm:p-4 rounded-xl text-white font-medium hover:glow-intense transition-all duration-300 hover:scale-105 text-sm sm:text-base`}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 + index * 0.1 }}
+          >
+            <action.icon className="h-5 w-5 sm:h-6 sm:w-6 mx-auto mb-1 sm:mb-2" />
+            <span className="block text-xs sm:text-sm">{action.title}</span>
+          </motion.button>
+        ))}
             </div>
           </GlassCard>
 
