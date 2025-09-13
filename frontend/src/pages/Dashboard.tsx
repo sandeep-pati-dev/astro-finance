@@ -321,7 +321,6 @@ const Dashboard = () => {
               {[
           { title: "Add Expense", icon: Plus, path: "/add-expense", color: "bg-gradient-primary" },
           { title: "Analytics", icon: BarChart3, path: "/analytics", color: "bg-gradient-to-r from-accent to-neon-purple" },
-          { title: "Settings", icon: Settings, path: "/settings", color: "bg-gradient-to-r from-neon-blue to-primary" },
           { title: "Goals", icon: Target, path: "/goals", color: "bg-gradient-to-r from-green-500 to-green-700" },
           { title: "Predictions", icon: TrendingUp, path: "/predictions", color: "bg-gradient-to-r from-purple-600 to-purple-800" },
         ].map((action, index) => (

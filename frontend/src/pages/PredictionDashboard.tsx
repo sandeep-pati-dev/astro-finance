@@ -1,18 +1,25 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, BarChart3, Calendar, IndianRupee, ArrowLeft, AlertCircle } from "lucide-react";
+import { TrendingUp, BarChart3, Calendar, IndianRupee, ArrowLeft, AlertCircle, RefreshCw, Info, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { predictionApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis } from "recharts";
 
 const PredictionDashboard = () => {
   const navigate = useNavigate();
   const [predictions, setPredictions] = useState<any>(null);
   const [categoryPredictions, setCategoryPredictions] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [period, setPeriod] = useState(3);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchPredictions();
@@ -44,12 +51,35 @@ const PredictionDashboard = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchPredictions();
+    setIsRefreshing(false);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const chartData = categoryPredictions ? Object.entries(categoryPredictions).map(([category, data]: any) => ({
+    category: category.replace('_', ' ').length > 10 ? category.replace('_', ' ').slice(0, 10) + '...' : category.replace('_', ' '),
+    predicted: data.predictedAmount,
+    average: data.averageAmount,
+  })).sort((a, b) => b.predicted - a.predicted) : [];
+
+  const chartConfig = {
+    predicted: {
+      label: "Predicted Amount",
+      color: "hsl(var(--primary))",
+    },
+    average: {
+      label: "Average Amount",
+      color: "hsl(var(--secondary))",
+    },
   };
 
   return (
@@ -78,6 +108,40 @@ const PredictionDashboard = () => {
             </div>
           </div>
         </motion.header>
+
+        {/* Controls */}
+        <motion.div
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              size="sm"
+              disabled={isRefreshing}
+              className="glass glass-hover border-glass-border"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Select value={period.toString()} onValueChange={(value) => setPeriod(parseInt(value))}>
+              <SelectTrigger className="w-[120px] glass glass-hover border-glass-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">3 Months</SelectItem>
+                <SelectItem value="6">6 Months</SelectItem>
+                <SelectItem value="12">12 Months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-sm text-secondary-foreground">
+            Adjust period to see predictions based on different time frames. (Note: Backend currently uses 3 months)
+          </p>
+        </motion.div>
 
       {isLoading ? (
         <GlassCard>
@@ -165,25 +229,53 @@ const PredictionDashboard = () => {
               <BarChart3 className="h-5 w-5" />
               Category Predictions
             </h2>
+            <p className="text-sm text-secondary-foreground mb-4">
+              Click on category cards for detailed information. The chart below visualizes predicted vs average amounts.
+            </p>
             {categoryPredictions ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {Object.entries(categoryPredictions).map(([category, data]: any) => (
-                  <div key={category} className="p-3 sm:p-4 rounded-xl bg-background-secondary/50 border border-glass-border hover:bg-background-secondary/70 transition-colors">
-                    <div className="text-xs sm:text-sm font-semibold text-foreground capitalize mb-2 truncate">
-                      {category.replace('_', ' ')}
-                    </div>
-                    <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
-                      {formatCurrency(data.predictedAmount)}
-                    </div>
-                    <div className="text-xs text-secondary-foreground">
-                      Avg: {formatCurrency(data.averageAmount)}
-                    </div>
-                    <div className="text-xs text-secondary-foreground mt-1">
-                      {data.transactionCount} transactions
-                    </div>
+              <>
+                {chartData.length > 0 && (
+                  <div className="mb-6 overflow-x-auto sm:overflow-visible">
+                    <ChartContainer config={chartConfig} className="h-[200px] sm:h-[300px] min-w-[600px] sm:min-w-0">
+                      <BarChart data={chartData}>
+                        <XAxis dataKey="category" tick={{ fontSize: 10 }} height={60} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="predicted" fill="var(--color-predicted)" />
+                        <Bar dataKey="average" fill="var(--color-average)" />
+                      </BarChart>
+                    </ChartContainer>
+                    <p className="text-xs text-secondary-foreground mt-2 text-center">
+                      Interactive chart: Hover over bars for details. Blue bars show predicted amounts, gray bars show averages. Scroll horizontally on mobile for more categories.
+                    </p>
                   </div>
-                ))}
-              </div>
+                )}
+                <div className="overflow-x-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 min-w-max sm:min-w-0">
+                    {Object.entries(categoryPredictions).map(([category, data]: any) => (
+                      <div
+                        key={category}
+                        className="p-3 sm:p-4 rounded-xl bg-background-secondary/50 border border-glass-border hover:bg-background-secondary/70 transition-colors cursor-pointer"
+                        onClick={() => setSelectedCategory({ category, data })}
+                      >
+                        <div className="text-xs sm:text-sm font-semibold text-foreground capitalize mb-2 truncate flex items-center gap-1">
+                          {category.replace('_', ' ')}
+                          <Info className="h-3 w-3 text-secondary-foreground" />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
+                          {formatCurrency(data.predictedAmount)}
+                        </div>
+                        <div className="text-xs text-secondary-foreground">
+                          Avg: {formatCurrency(data.averageAmount)}
+                        </div>
+                        <div className="text-xs text-secondary-foreground mt-1">
+                          {data.transactionCount} transactions
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="text-center py-8">
                 <BarChart3 className="h-12 w-12 text-secondary-foreground mx-auto mb-3 opacity-50" />
@@ -197,6 +289,45 @@ const PredictionDashboard = () => {
             )}
           </GlassCard>
         </>
+      )}
+
+      {/* Category Detail Modal */}
+      {selectedCategory && (
+        <Dialog open={!!selectedCategory} onOpenChange={() => setSelectedCategory(null)}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="capitalize flex items-center gap-2">
+                {selectedCategory.category.replace('_', ' ')}
+                <Info className="h-4 w-4" />
+              </DialogTitle>
+              <DialogDescription>
+                Detailed prediction breakdown for this expense category.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium">Predicted Amount</p>
+                  <p className="text-lg font-bold text-primary">{formatCurrency(selectedCategory.data.predictedAmount)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Average Amount</p>
+                  <p className="text-lg font-bold text-secondary">{formatCurrency(selectedCategory.data.averageAmount)}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Total Transactions</p>
+                <p className="text-lg">{selectedCategory.data.transactionCount}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Prediction Basis</p>
+                <p className="text-sm text-secondary-foreground">
+                  Based on spending patterns over the last {period} months.
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
       </div>
     </TooltipProvider>
