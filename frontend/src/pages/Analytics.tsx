@@ -439,7 +439,11 @@ const Analytics = () => {
     return (
       <div className={containerClass}>
         {dailyData.map((item, index) => {
-          const barHeight = Math.min((item.amount / maxAmount) * maxBarHeight, maxBarHeight);
+          let barHeight = Math.min((item.amount / maxAmount) * maxBarHeight, maxBarHeight);
+          const minBarHeight = 25;
+          if (barHeight < minBarHeight && item.amount > 0) {
+            barHeight = minBarHeight;
+          }
           return (
             <div key={item.day + index} className="flex flex-col items-center gap-2 flex-shrink-0">
               <div className="relative group">
