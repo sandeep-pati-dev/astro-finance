@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, BarChart3, PieChart, TrendingUp, Calendar, History, Download } from "lucide-react";
+import { ArrowLeft, BarChart3, PieChart, TrendingUp, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { expenseApi, userApi, budgetApi } from "@/lib/api";
+import { expenseApi, budgetApi, userApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import {
   Dialog,
@@ -30,7 +30,6 @@ const Analytics = () => {
     }
   });
 
-  // Export dialog state
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportYear, setExportYear] = useState(new Date().getFullYear());
@@ -45,38 +44,6 @@ const Analytics = () => {
     topCategory: { category: 'Food & Dining', amount: 0 }
   });
 
-  useEffect(() => {
-    // Fetch user profile to get createdAt
-    const fetchUserProfile = async () => {
-      try {
-        const response = await userApi.getProfile();
-        if (response.data.success && response.data.data.user) {
-          setUserCreatedAt(new Date(response.data.data.user.createdAt));
-          // Set initial selected year and month based on user createdAt
-          const createdDate = new Date(response.data.data.user.createdAt);
-          setSelectedYear(createdDate.getFullYear());
-          setSelectedMonth(createdDate.getMonth() + 1);
-        }
-      } catch (error) {
-        // Ignore error, fallback to current date
-      }
-    };
-    fetchUserProfile();
-  }, []);
-
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [activeTab, selectedYear, selectedMonth]);
-  
-  // Generate year options from userCreatedAt year to current year
-  const currentYear = new Date().getFullYear();
-  const startYear = userCreatedAt ? userCreatedAt.getFullYear() : currentYear;
-  const yearOptions = [];
-  for (let y = startYear; y <= currentYear; y++) {
-    yearOptions.push(y);
-  }
-
-  // Generate month options based on selectedYear and userCreatedAt
   const monthLabels = [
     { value: 1, label: "January" },
     { value: 2, label: "February" },
@@ -89,136 +56,35 @@ const Analytics = () => {
     { value: 9, label: "September" },
     { value: 10, label: "October" },
     { value: 11, label: "November" },
-    { value: 12, label: "December" }
+    { value: 12, label: "December" },
   ];
-  const startMonth = (userCreatedAt && selectedYear === startYear) ? userCreatedAt.getMonth() + 1 : 1;
-  const monthOptions = monthLabels.filter(m => m.value >= startMonth);
 
-  const fetchAnalyticsData = async () => {
-    try {
-      setIsLoading(true);
+  // Edit budget dialog state
+  const [isEditBudgetOpen, setIsEditBudgetOpen] = useState(false);
+  const [editBudgetAmount, setEditBudgetAmount] = useState(0);
+  const [isSavingBudget, setIsSavingBudget] = useState(false);
 
-      if (activeTab === "history") {
-        // Fetch historical data for selected year and month
-        const historyResponse = await expenseApi.getExpenseSummaryForMonth(selectedYear, selectedMonth);
-        if (historyResponse.data.success) {
-          const data = historyResponse.data.data.summary;
-
-          const categoryColors = {
-            "food": "#ff6b6b",
-            "transport": "#4ecdc4",
-            "shopping": "#45b7d1",
-            "entertainment": "#f9ca24",
-            "bills": "#6c5ce7",
-            "healthcare": "#ff9ff3",
-            "education": "#1dd1a1",
-            "other": "#a0a0a0"
-          };
-
-          const categoryLabels = {
-            "food": "Food & Dining",
-            "transport": "Transport",
-            "shopping": "Shopping",
-            "entertainment": "Entertainment",
-            "bills": "Bills & Utilities",
-            "healthcare": "Healthcare",
-            "education": "Education",
-            "other": "Other"
-          };
-
-          const processedData = data.byCategory?.map((cat: any) => ({
-            category: categoryLabels[cat._id] || cat._id,
-            amount: cat.totalAmount || 0,
-            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
-            color: categoryColors[cat._id] || "#a0a0a0"
-          })) || [];
-
-          setAnalyticsData(prev => ({
-            ...prev,
-            history: {
-              ...prev.history,
-              byCategory: processedData
-            }
-          }));
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await userApi.getProfile();
+        if (response.data.success && response.data.data.user) {
+          setUserCreatedAt(new Date(response.data.data.user.createdAt));
+          const createdDate = new Date(response.data.data.user.createdAt);
+          setSelectedYear(createdDate.getFullYear());
+          setSelectedMonth(createdDate.getMonth() + 1);
         }
-
-        const dailyResponse = await expenseApi.getDailySpendingForMonth(selectedYear, selectedMonth);
-        if (dailyResponse.data.success) {
-          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
-
-          setAnalyticsData(prev => ({
-            ...prev,
-            history: {
-              ...prev.history,
-              dailySpending: dailyData
-            }
-          }));
-        }
-      } else {
-        // Fetch category breakdown data using the summary endpoint
-        const summaryResponse = await expenseApi.getExpenseSummary(activeTab === "week" ? "week" : "month");
-        if (summaryResponse.data.success) {
-          const data = summaryResponse.data.data.summary;
-
-          const categoryColors = {
-            "food": "#ff6b6b",
-            "transport": "#4ecdc4",
-            "shopping": "#45b7d1",
-            "entertainment": "#f9ca24",
-            "bills": "#6c5ce7",
-            "healthcare": "#ff9ff3",
-            "education": "#1dd1a1",
-            "other": "#a0a0a0"
-          };
-
-          const categoryLabels = {
-            "food": "Food & Dining",
-            "transport": "Transport",
-            "shopping": "Shopping",
-            "entertainment": "Entertainment",
-            "bills": "Bills & Utilities",
-            "healthcare": "Healthcare",
-            "education": "Education",
-            "other": "Other"
-          };
-
-          const processedData = data.byCategory?.map((cat: any) => ({
-            category: categoryLabels[cat._id] || cat._id,
-            amount: cat.totalAmount || 0,
-            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
-            color: categoryColors[cat._id] || "#a0a0a0"
-          })) || [];
-
-          setAnalyticsData(prev => ({
-            ...prev,
-            [activeTab === "week" ? "weekly" : "monthly"]: processedData
-          }));
-        }
-
-        // Fetch daily spending for current period
-        const dailyResponse = await expenseApi.getDailySpending(activeTab === "week" ? "week" : "month");
-        if (dailyResponse.data.success) {
-          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
-
-          setAnalyticsData(prev => ({
-            ...prev,
-            daily: dailyData
-          }));
-        }
+      } catch (error) {
+        // Ignore error
       }
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load analytics data",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+    fetchUserProfile();
+  }, []);
 
-  // Fetch insights data for the three cards
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [activeTab, selectedYear, selectedMonth]);
+
   useEffect(() => {
     const fetchInsightsData = async () => {
       try {
@@ -226,9 +92,7 @@ const Analytics = () => {
         const currentMonth = currentDate.getMonth() + 1;
         const currentYear = currentDate.getFullYear();
 
-        // Fetch spending trend
         const trendResponse = await budgetApi.getBudgetTrend();
-        console.log('Budget Trend Response:', trendResponse);
         if (trendResponse.data.success) {
           setInsightsData(prev => ({
             ...prev,
@@ -236,9 +100,7 @@ const Analytics = () => {
           }));
         }
 
-        // Fetch budget status for current month
         const budgetUsageResponse = await budgetApi.getBudgetUsage(currentYear, currentMonth);
-        console.log('Budget Usage Response:', budgetUsageResponse);
         if (budgetUsageResponse.data.success) {
           const { percentageUsed, totalSpent, budget } = budgetUsageResponse.data.data;
           setInsightsData(prev => ({
@@ -249,16 +111,14 @@ const Analytics = () => {
               budgetAmount: budget?.amount || 0
             }
           }));
+          setEditBudgetAmount(budget?.amount || 0);
         }
 
-        // Fetch top category for current period
-        const period = activeTab === "week" ? "week" : "month";
-        const expenseSummaryResponse = await expenseApi.getExpenseSummary(period);
-        console.log('Expense Summary Response:', expenseSummaryResponse);
+        // Always use monthly data for spending insights
+        const expenseSummaryResponse = await expenseApi.getExpenseSummary("month");
         if (expenseSummaryResponse.data.success) {
           const summary = expenseSummaryResponse.data.data.summary;
           const topCategory = summary.byCategory?.[0];
-          
           if (topCategory) {
             const categoryLabels = {
               "food": "Food & Dining",
@@ -270,7 +130,6 @@ const Analytics = () => {
               "education": "Education",
               "other": "Other"
             };
-            
             setInsightsData(prev => ({
               ...prev,
               topCategory: {
@@ -281,54 +140,126 @@ const Analytics = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching insights data:', error);
-        // Keep default values if API calls fail
+        // Ignore errors
       }
     };
-
     fetchInsightsData();
-  }, [activeTab]);
+  }, []);
 
-  // Export data handler
-  const handleExportData = async () => {
+  const fetchAnalyticsData = async () => {
     try {
-      setIsExporting(true);
-      const response = await userApi.exportData(exportYear, exportMonth);
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `expense-data-${exportYear}-${exportMonth}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      setIsExportDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Expense data exported successfully",
-        variant: "default"
-      });
-    } catch (error: any) {
-      console.error('Export failed:', error);
+      setIsLoading(true);
+      if (activeTab === "history") {
+        const historyResponse = await expenseApi.getExpenseSummaryForMonth(selectedYear, selectedMonth);
+        if (historyResponse.data.success) {
+          const data = historyResponse.data.data.summary;
+          const categoryColors = {
+            "food": "#ff6b6b",
+            "transport": "#4ecdc4",
+            "shopping": "#45b7d1",
+            "entertainment": "#f9ca24",
+            "bills": "#6c5ce7",
+            "healthcare": "#ff9ff3",
+            "education": "#1dd1a1",
+            "other": "#a0a0a0"
+          };
+          const categoryLabels = {
+            "food": "Food & Dining",
+            "transport": "Transport",
+            "shopping": "Shopping",
+            "entertainment": "Entertainment",
+            "bills": "Bills & Utilities",
+            "healthcare": "Healthcare",
+            "education": "Education",
+            "other": "Other"
+          };
+          const processedData = data.byCategory?.map((cat: any) => ({
+            category: categoryLabels[cat._id] || cat._id,
+            amount: cat.totalAmount || 0,
+            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
+            color: categoryColors[cat._id] || "#a0a0a0"
+          })) || [];
+          setAnalyticsData(prev => ({
+            ...prev,
+            history: {
+              ...prev.history,
+              byCategory: processedData
+            }
+          }));
+        }
+        const dailyResponse = await expenseApi.getDailySpendingForMonth(selectedYear, selectedMonth);
+        if (dailyResponse.data.success) {
+          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
+          setAnalyticsData(prev => ({
+            ...prev,
+            history: {
+              ...prev.history,
+              dailySpending: dailyData
+            }
+          }));
+        }
+      } else {
+        const summaryResponse = await expenseApi.getExpenseSummary(activeTab === "week" ? "week" : "month");
+        if (summaryResponse.data.success) {
+          const data = summaryResponse.data.data.summary;
+          const categoryColors = {
+            "food": "#ff6b6b",
+            "transport": "#4ecdc4",
+            "shopping": "#45b7d1",
+            "entertainment": "#f9ca24",
+            "bills": "#6c5ce7",
+            "healthcare": "#ff9ff3",
+            "education": "#1dd1a1",
+            "other": "#a0a0a0"
+          };
+          const categoryLabels = {
+            "food": "Food & Dining",
+            "transport": "Transport",
+            "shopping": "Shopping",
+            "entertainment": "Entertainment",
+            "bills": "Bills & Utilities",
+            "healthcare": "Healthcare",
+            "education": "Education",
+            "other": "Other"
+          };
+          const processedData = data.byCategory?.map((cat: any) => ({
+            category: categoryLabels[cat._id] || cat._id,
+            amount: cat.totalAmount || 0,
+            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
+            color: categoryColors[cat._id] || "#a0a0a0"
+          })) || [];
+          setAnalyticsData(prev => ({
+            ...prev,
+            [activeTab === "week" ? "weekly" : "monthly"]: processedData
+          }));
+        }
+        const dailyResponse = await expenseApi.getDailySpending(activeTab === "week" ? "week" : "month");
+        if (dailyResponse.data.success) {
+          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
+          setAnalyticsData(prev => ({
+            ...prev,
+            daily: dailyData
+          }));
+        }
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.userFriendlyMessage || "Failed to export expense data",
+        description: "Failed to load analytics data",
         variant: "destructive"
       });
     } finally {
-      setIsExporting(false);
+      setIsLoading(false);
     }
   };
 
   const currentData = activeTab === "history" ? analyticsData.history.byCategory : 
-                    activeTab === "week" ? analyticsData.weekly : analyticsData.monthly;
-  
+                      activeTab === "week" ? analyticsData.weekly : analyticsData.monthly;
+
   const dailyData = activeTab === "history" ? analyticsData.history.dailySpending : analyticsData.daily;
-  // Set maxAmount to 1000 for scaling bars as per user request
   const maxAmount = 1000;
   const totalAmount = currentData.reduce((sum, item) => sum + item.amount, 0);
-  
-  // Calculate insights from daily data
+
   const dailyTotal = dailyData.reduce((sum, item) => sum + item.amount, 0);
   const averageDaily = dailyData.length > 0 ? Math.round(dailyTotal / dailyData.length) : 0;
   const highestDay = dailyData.length > 0 
@@ -344,7 +275,6 @@ const Analytics = () => {
   };
 
   const PieChartComponent = () => {
-    // Responsive chart size
     const isSmallScreen = window.innerWidth < 640;
     const radius = isSmallScreen ? 60 : 80;
     const centerX = isSmallScreen ? 80 : 100;
@@ -392,7 +322,6 @@ const Analytics = () => {
             createArc(item.percentage, item.color, index)
           )}
           
-          {/* Center circle for donut effect */}
           <circle
             cx={centerX}
             cy={centerY}
@@ -402,7 +331,6 @@ const Analytics = () => {
             strokeWidth="2"
           />
           
-          {/* Total amount in center */}
           <text
             x={centerX}
             y={centerY - 5}
@@ -433,7 +361,6 @@ const Analytics = () => {
       ? `flex items-end gap-${isSmallScreen ? '1' : '3'} h-${isSmallScreen ? '40' : '52'} p-${isSmallScreen ? '2' : '4'} overflow-x-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-transparent` 
       : `flex items-end justify-between h-${isSmallScreen ? '40' : '52'} p-${isSmallScreen ? '2' : '4'}`;
     
-    // Responsive max bar height
     const maxBarHeight = isSmallScreen ? 80 : 120;
     
     return (
@@ -465,7 +392,6 @@ const Analytics = () => {
                   onTouchEnd={() => setHoveredBar(null)}
                 />
                 
-                {/* Mobile-optimized tooltip */}
                 <div className={`absolute ${isSmallScreen ? '-top-2' : '-top-4'} left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-0.5 py-0.5 rounded-sm text-xs font-semibold shadow-lg z-50 ${hoveredBar === index ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none max-w-[60px] truncate`}>
                   {formatCurrency(item.amount)}
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-0.5 border-r-0.5 border-t-0.5 border-l-transparent border-r-transparent border-t-primary"></div>
@@ -482,9 +408,44 @@ const Analytics = () => {
     );
   };
 
+  const handleSaveBudget = async () => {
+    setIsSavingBudget(true);
+    try {
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      await budgetApi.updateBudget(year, month, { amount: editBudgetAmount });
+      toast({
+        title: "Success",
+        description: "Monthly budget updated successfully",
+      });
+      // Refresh budget usage data to update percentage automatically
+      const budgetUsageResponse = await budgetApi.getBudgetUsage(year, month);
+      if (budgetUsageResponse.data.success) {
+        const { percentageUsed, totalSpent, budget } = budgetUsageResponse.data.data;
+        setInsightsData(prev => ({
+          ...prev,
+          budgetStatus: {
+            percentageUsed,
+            totalSpent,
+            budgetAmount: budget?.amount || 0
+          }
+        }));
+      }
+      setIsEditBudgetOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update monthly budget",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingBudget(false);
+    }
+  };
+
   return (
     <div className="min-h-screen p-2 sm:p-4 lg:p-8">
-      {/* Mobile-optimized Header */}
       <motion.header 
         className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8"
         initial={{ opacity: 0, x: -20 }}
@@ -513,7 +474,6 @@ const Analytics = () => {
       </motion.header>
 
       <div className="max-w-6xl mx-auto">
-        {/* Mobile-optimized Time Period Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -521,7 +481,6 @@ const Analytics = () => {
           className="mb-6 sm:mb-8"
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            {/* Mobile-first tabs layout */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-0">
               <TabsList className="glass border-glass-border flex items-center gap-1 sm:gap-2 justify-center sm:justify-start flex-1 sm:flex-none">
                 <TabsTrigger 
@@ -544,7 +503,6 @@ const Analytics = () => {
                 </TabsTrigger>
               </TabsList>
               
-              {/* Export button - mobile optimized */}
               <Button
                 variant="outline"
                 size="sm"
@@ -556,50 +514,7 @@ const Analytics = () => {
               </Button>
             </div>
 
-            {/* Mobile-optimized Year and Month Selectors for History Tab */}
-            {activeTab === "history" && (
-              <motion.div
-                className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="flex items-center gap-2 flex-1 sm:flex-none">
-                  <label className="text-sm font-medium text-secondary-foreground whitespace-nowrap">Year:</label>
-                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                    <SelectTrigger className="glass border-glass-border flex-1 sm:w-24">
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    {yearOptions.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2 flex-1 sm:flex-none">
-                  <label className="text-sm font-medium text-secondary-foreground whitespace-nowrap">Month:</label>
-                  <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                    <SelectTrigger className="glass border-glass-border flex-1 sm:w-32">
-                      <SelectValue placeholder="Month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map((month) => (
-                        <SelectItem key={month.value} value={month.value.toString()}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Mobile-first charts layout */}
             <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-              {/* Pie Chart - Mobile optimized */}
               <GlassCard delay={0.4}>
                 <div className="flex items-center gap-2 mb-4 sm:mb-6">
                   <PieChart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -634,7 +549,6 @@ const Analytics = () => {
                 </div>
               </GlassCard>
 
-              {/* Bar Chart - Mobile optimized */}
               <GlassCard delay={0.5}>
                 <div className="flex items-center gap-2 mb-4 sm:mb-6">
                   <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -648,7 +562,6 @@ const Analytics = () => {
                 
                 <BarChart />
                 
-                {/* Mobile-optimized summary stats */}
                 <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-4">
                   <div className="text-center p-2 sm:p-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10">
                     <div className="text-xs sm:text-sm text-secondary-foreground mb-1">Average Daily</div>
@@ -660,92 +573,106 @@ const Analytics = () => {
                   </div>
                 </div>
               </GlassCard>
+
+              <GlassCard delay={0.6}>
+                <div className="flex items-center gap-2 mb-4 sm:mb-6">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  <h2 className="text-lg sm:text-xl font-semibold text-neon">
+                    Spending Insights(Monthly)
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-3 rounded-lg bg-background-secondary/30">
+                    <div className="text-sm font-medium text-secondary-foreground mb-1">Budget Usage</div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-primary font-bold text-lg">
+                        {insightsData.budgetStatus.percentageUsed}%
+                      </div>
+                      <div className="text-xs text-secondary-foreground">
+                        {formatCurrency(insightsData.budgetStatus.totalSpent)} / {formatCurrency(insightsData.budgetStatus.budgetAmount)}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => setIsEditBudgetOpen(true)}
+                      className="mt-3 w-full"
+                      variant="default"
+                    >
+                      Edit your monthly budget
+                    </Button>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-background-secondary/30">
+                    <div className="text-sm font-medium text-secondary-foreground mb-1">Spending Trend</div>
+                    <div className="flex items-center gap-2">
+                      <div className={`text-lg font-bold ${
+                        insightsData.spendingTrend.trend === 'increase' ? 'text-green-400' :
+                        insightsData.spendingTrend.trend === 'decrease' ? 'text-red-400' : 'text-yellow-400'
+                      }`}>
+                        {insightsData.spendingTrend.percentageChange}%
+                      </div>
+                      <div className="text-xs text-secondary-foreground capitalize">
+                        {insightsData.spendingTrend.trend}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-background-secondary/30">
+                    <div className="text-sm font-medium text-secondary-foreground mb-1">Top Spending Category</div>
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold">{insightsData.topCategory.category}</div>
+                      <div className="text-primary font-bold">{formatCurrency(insightsData.topCategory.amount)}</div>
+                    </div>
+                  </div>
+                </div>
+              </GlassCard>
+
+              {isEditBudgetOpen && (
+                <Dialog open={isEditBudgetOpen} onOpenChange={setIsEditBudgetOpen}>
+                  <DialogContent className="glass border-glass-border max-w-md mx-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-neon">Edit Monthly Budget</DialogTitle>
+                      <DialogDescription>
+                        Modify your monthly budget amount
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-4">
+                      <label className="block text-sm font-medium mb-2">Budget Amount (₹)</label>
+                      <input
+                        type="number"
+                        value={editBudgetAmount}
+                        onChange={(e) => setEditBudgetAmount(Number(e.target.value))}
+                        className="w-full p-2 rounded bg-input border-glass-border focus:border-primary"
+                        min={0}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      <Button variant="outline" onClick={() => setIsEditBudgetOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveBudget}
+                        disabled={isSavingBudget || editBudgetAmount < 0}
+                        className="bg-gradient-primary hover:glow text-primary-foreground"
+                      >
+                        {isSavingBudget ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full mr-2"
+                          />
+                        ) : (
+                          "Save"
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
-
-            {/* Mobile-first Insights Cards */}
-          
           </Tabs>
-
-          {/* Mobile-optimized Export Data Dialog */}
-          <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-            <DialogContent className="glass border-glass-border max-w-sm sm:max-w-md mx-auto">
-              <DialogHeader>
-                <DialogTitle className="text-neon text-lg sm:text-xl">Export Expense Data</DialogTitle>
-                <DialogDescription className="text-sm">
-                  Select the month and year to export your expense data as CSV
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 py-4">
-                {/* Year Selection - Mobile optimized */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Year</label>
-                  <Select
-                    value={exportYear.toString()}
-                    onValueChange={(value) => setExportYear(parseInt(value))}
-                  >
-                    <SelectTrigger className="bg-input border-glass-border">
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Month Selection - Mobile optimized */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Month</label>
-                  <Select
-                    value={exportMonth.toString()}
-                    onValueChange={(value) => setExportMonth(parseInt(value))}
-                  >
-                    <SelectTrigger className="bg-input border-glass-border">
-                      <SelectValue placeholder="Select month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map((month) => (
-                        <SelectItem key={month.value} value={month.value.toString()}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Mobile-optimized button layout */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsExportDialogOpen(false)}
-                  className="border-glass-border w-full sm:w-auto order-2 sm:order-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleExportData}
-                  disabled={isExporting}
-                  className="bg-gradient-primary hover:glow text-primary-foreground w-full sm:w-auto order-1 sm:order-2"
-                >
-                  {isExporting ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full mr-2"
-                    />
-                  ) : (
-                    <Download className="h-4 w-4 mr-2" />
-                  )}
-                  {isExporting ? "Exporting..." : "Export Data"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </motion.div>
       </div>
     </div>
