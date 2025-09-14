@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { expenseApi, userApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import DeveloperInfoDialog from "@/components/ui/DeveloperInfoDialog";
+import NotificationCenter from "@/components/ui/NotificationCenter";
 
 interface ExpenseSummary {
   title: string;
@@ -223,7 +224,8 @@ const Dashboard = () => {
           <p className="text-secondary-foreground">Track your expenses like a pro</p>
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          <NotificationCenter />
           <Button
             onClick={() => setShowDeveloperDialog(true)}
             variant="outline"

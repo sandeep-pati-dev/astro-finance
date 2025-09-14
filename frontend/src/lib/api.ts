@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-// const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
-const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
+// const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
 
 
 const api = axios.create({
@@ -262,6 +262,15 @@ export const predictionApi = {
 
   getCategoryPredictions: (period?: number) =>
     api.get<ApiResponse<{ categoryPredictions: any }>>(`/predictions/categories${period ? `?period=${period}` : ''}`),
+};
+
+// Notification endpoints
+export const notificationApi = {
+  getNotifications: () =>
+    api.get<ApiResponse<{ notifications: any[] }>>('/notifications'),
+
+  dismissNotification: (id: string) =>
+    api.post<ApiResponse<{ message: string }>>(`/notifications/dismiss/${id}`),
 };
 
 export default api;

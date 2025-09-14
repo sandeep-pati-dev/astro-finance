@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password: string;
   name: string;
   hasSeenDeveloperDialog: boolean;
+  dismissedNotifications: string[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -33,6 +34,10 @@ const userSchema = new Schema<IUser>(
     hasSeenDeveloperDialog: {
       type: Boolean,
       default: false
+    },
+    dismissedNotifications: {
+      type: [String],
+      default: []
     }
   },
   {
