@@ -9,6 +9,7 @@ import { useState, createContext, useContext, useEffect } from "react";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
+import ExpenseEdit from "./pages/ExpenseEdit";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import GoalsDashboard from "./pages/GoalsDashboard";
@@ -42,7 +43,7 @@ export const useAuth = () => useContext(AuthContext);
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -50,7 +51,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
@@ -95,6 +96,11 @@ const AnimatedRoutes = () => {
           <Route path="/add-expense" element={
             <ProtectedRoute>
               <AddExpense />
+            </ProtectedRoute>
+          } />
+          <Route path="/expenses/:id/edit" element={
+            <ProtectedRoute>
+              <ExpenseEdit />
             </ProtectedRoute>
           } />
           <Route path="/analytics" element={
