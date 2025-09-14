@@ -2,14 +2,14 @@ import Expense from '../models/Expense';
 import { Types } from 'mongoose';
 
 export class PredictionService {
-  static async getExpensePredictions(userId: string): Promise<any> {
+  static async getExpensePredictions(userId: string, months: number = 3): Promise<any> {
     const now = new Date();
 
-    // Get last 3 months of expense data
-    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    // Get last N months of expense data
+    const monthsAgo = new Date(now.getFullYear(), now.getMonth() - months, 1);
     const expenses = await Expense.find({
       userId: new Types.ObjectId(userId),
-      date: { $gte: threeMonthsAgo }
+      date: { $gte: monthsAgo }
     }).sort({ date: -1 });
 
     if (expenses.length === 0) {
@@ -76,13 +76,13 @@ export class PredictionService {
     };
   }
 
-  static async getCategoryPredictions(userId: string): Promise<any> {
+  static async getCategoryPredictions(userId: string, months: number = 3): Promise<any> {
     const now = new Date();
-    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    const monthsAgo = new Date(now.getFullYear(), now.getMonth() - months, 1);
 
     const expenses = await Expense.find({
       userId: new Types.ObjectId(userId),
-      date: { $gte: threeMonthsAgo }
+      date: { $gte: monthsAgo }
     });
 
     // Group by category and calculate averages

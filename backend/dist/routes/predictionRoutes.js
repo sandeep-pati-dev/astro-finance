@@ -8,7 +8,8 @@ router.use(authMiddleware_1.authenticate);
 router.get('/', async (req, res, next) => {
     try {
         const userId = req.user._id.toString();
-        const predictions = await predictionService_1.PredictionService.getExpensePredictions(userId);
+        const period = parseInt(req.query.period) || 3;
+        const predictions = await predictionService_1.PredictionService.getExpensePredictions(userId, period);
         res.json({
             success: true,
             data: { predictions }
@@ -21,7 +22,8 @@ router.get('/', async (req, res, next) => {
 router.get('/categories', async (req, res, next) => {
     try {
         const userId = req.user._id.toString();
-        const categoryPredictions = await predictionService_1.PredictionService.getCategoryPredictions(userId);
+        const period = parseInt(req.query.period) || 3;
+        const categoryPredictions = await predictionService_1.PredictionService.getCategoryPredictions(userId, period);
         res.json({
             success: true,
             data: { categoryPredictions }

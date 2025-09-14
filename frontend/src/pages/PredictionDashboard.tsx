@@ -11,6 +11,7 @@ import { predictionApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis } from "recharts";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const PredictionDashboard = () => {
   const navigate = useNavigate();
@@ -21,16 +22,22 @@ const PredictionDashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // New state for tooltip open on mobile
+  const [spendingTooltipOpen, setSpendingTooltipOpen] = useState(false);
+  const [predictionTooltipOpen, setPredictionTooltipOpen] = useState(false);
+
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     fetchPredictions();
-  }, []);
+  }, [period]);
 
   const fetchPredictions = async () => {
     try {
       setIsLoading(true);
       const [predictionsResponse, categoryResponse] = await Promise.all([
-        predictionApi.getPredictions(),
-        predictionApi.getCategoryPredictions()
+        predictionApi.getPredictions(period),
+        predictionApi.getCategoryPredictions(period)
       ]);
 
       if (predictionsResponse.data.success) {
@@ -178,15 +185,20 @@ const PredictionDashboard = () => {
                 <div className="text-center p-3 sm:p-4 rounded-lg bg-background-secondary/30">
               <div className="text-xs sm:text-sm font-semibold text-foreground mb-1 flex items-center justify-center gap-1">
                 Spending Pattern
-                <Tooltip>
-                  <TooltipTrigger asChild>
+                <Tooltip open={isMobile ? spendingTooltipOpen : undefined} onOpenChange={isMobile ? setSpendingTooltipOpen : undefined}>
+                  <TooltipTrigger asChild onClick={isMobile ? (e) => { e.preventDefault(); setSpendingTooltipOpen(!spendingTooltipOpen); } : undefined}>
                     <AlertCircle className="h-4 w-4 text-secondary-foreground cursor-help" />
                   </TooltipTrigger>
-                  <TooltipContent side="top" align="center">
-                    <p>
-                      Spending Pattern indicates whether your expenses are increasing, decreasing, or stable based on recent trends.
-                    </p>
-                  </TooltipContent>
+               <TooltipContent
+  side={isMobile ? "bottom" : "top"}
+  align="center"
+  className={`bg-black text-white ${isMobile ? "max-w-[250px] text-center break-words whitespace-normal px-4 py-2" : "px-4 py-2"}`}
+>
+  <p className={isMobile ? "text-sm" : ""}>
+    Spending Pattern indicates whether your expenses are increasing, decreasing, or stable based on recent trends.
+  </p>
+</TooltipContent>
+
                 </Tooltip>
               </div>
               <div className={`text-sm sm:text-base font-medium ${
@@ -201,16 +213,21 @@ const PredictionDashboard = () => {
                 <div className="text-center p-3 sm:p-4 rounded-lg bg-background-secondary/30">
                   <div className="text-xs sm:text-sm font-semibold text-foreground mb-1 flex items-center justify-center gap-1">
                     Prediction Reliability
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <AlertCircle className="h-4 w-4 text-secondary-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" align="center">
-                        <p>
-                          Prediction Reliability shows how confident we are in the forecast based on data consistency and trend stability.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                <Tooltip open={isMobile ? predictionTooltipOpen : undefined} onOpenChange={isMobile ? setPredictionTooltipOpen : undefined}>
+                  <TooltipTrigger asChild onClick={isMobile ? (e) => { e.preventDefault(); setPredictionTooltipOpen(!predictionTooltipOpen); } : undefined}>
+                    <AlertCircle className="h-4 w-4 text-secondary-foreground cursor-help" />
+                  </TooltipTrigger>
+                 <TooltipContent
+  side={isMobile ? "top" : "top"}
+  align="center"
+  className={`bg-black text-white ${isMobile ? "max-w-[250px] text-center break-words whitespace-normal px-4 py-2" : "px-4 py-2"}`}
+>
+  <p className={isMobile ? "text-sm" : ""}>
+    Prediction Reliability shows how confident we are in the forecast based on data consistency and trend stability.
+  </p>
+</TooltipContent>
+
+                </Tooltip>
                   </div>
                   <div className={`text-sm sm:text-base font-medium ${
                     predictions?.confidence === 'high' ? 'text-green-500' :

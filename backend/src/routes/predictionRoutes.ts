@@ -11,7 +11,8 @@ router.use(authenticate);
 router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
-    const predictions = await PredictionService.getExpensePredictions(userId);
+    const period = parseInt(req.query.period as string) || 3; // Default to 3 months
+    const predictions = await PredictionService.getExpensePredictions(userId, period);
 
     res.json({
       success: true,
@@ -26,7 +27,8 @@ router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
 router.get('/categories', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
-    const categoryPredictions = await PredictionService.getCategoryPredictions(userId);
+    const period = parseInt(req.query.period as string) || 3; // Default to 3 months
+    const categoryPredictions = await PredictionService.getCategoryPredictions(userId, period);
 
     res.json({
       success: true,

@@ -7,12 +7,12 @@ exports.PredictionService = void 0;
 const Expense_1 = __importDefault(require("../models/Expense"));
 const mongoose_1 = require("mongoose");
 class PredictionService {
-    static async getExpensePredictions(userId) {
+    static async getExpensePredictions(userId, months = 3) {
         const now = new Date();
-        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        const monthsAgo = new Date(now.getFullYear(), now.getMonth() - months, 1);
         const expenses = await Expense_1.default.find({
             userId: new mongoose_1.Types.ObjectId(userId),
-            date: { $gte: threeMonthsAgo }
+            date: { $gte: monthsAgo }
         }).sort({ date: -1 });
         if (expenses.length === 0) {
             return {
@@ -68,12 +68,12 @@ class PredictionService {
             monthlyBreakdown: monthlySpending
         };
     }
-    static async getCategoryPredictions(userId) {
+    static async getCategoryPredictions(userId, months = 3) {
         const now = new Date();
-        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        const monthsAgo = new Date(now.getFullYear(), now.getMonth() - months, 1);
         const expenses = await Expense_1.default.find({
             userId: new mongoose_1.Types.ObjectId(userId),
-            date: { $gte: threeMonthsAgo }
+            date: { $gte: monthsAgo }
         });
         const categorySpending = {};
         expenses.forEach(expense => {

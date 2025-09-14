@@ -257,11 +257,11 @@ export const goalApi = {
 
 // Prediction endpoints
 export const predictionApi = {
-  getPredictions: () =>
-    api.get<ApiResponse<{ predictions: any }>>('/predictions'),
+  getPredictions: (period?: number) =>
+    api.get<ApiResponse<{ predictions: any }>>(`/predictions${period ? `?period=${period}` : ''}`),
 
-  getCategoryPredictions: () =>
-    api.get<ApiResponse<{ categoryPredictions: any }>>('/predictions/categories'),
+  getCategoryPredictions: (period?: number) =>
+    api.get<ApiResponse<{ categoryPredictions: any }>>(`/predictions/categories${period ? `?period=${period}` : ''}`),
 };
 
 export default api;

@@ -1,5 +1,5 @@
 export declare class PredictionService {
-    static getExpensePredictions(userId: string): Promise<any>;
-    static getCategoryPredictions(userId: string): Promise<any>;
+    static getExpensePredictions(userId: string, months?: number): Promise<any>;
+    static getCategoryPredictions(userId: string, months?: number): Promise<any>;
 }
 //# sourceMappingURL=predictionService.d.ts.map
