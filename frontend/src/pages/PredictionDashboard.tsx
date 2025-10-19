@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, BarChart3, Calendar, IndianRupee, ArrowLeft, AlertCircle, RefreshCw, Info, ChevronDown } from "lucide-react";
+import { TrendingUp, BarChart3, Calendar, IndianRupee, ArrowLeft, AlertCircle, RefreshCw, Info, ChevronDown, TrendingDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { predictionApi } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, LineChart, Line, ResponsiveContainer } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const PredictionDashboard = () => {
@@ -76,6 +76,7 @@ const PredictionDashboard = () => {
     category: category.replace('_', ' ').length > 10 ? category.replace('_', ' ').slice(0, 10) + '...' : category.replace('_', ' '),
     predicted: data.predictedAmount,
     average: data.averageAmount,
+    trend: data.trend,
   })).sort((a, b) => b.predicted - a.predicted) : [];
 
   const chartConfig = {
@@ -171,15 +172,48 @@ const PredictionDashboard = () => {
               <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-2">
                 {formatCurrency(predictions?.nextMonthPrediction || 0)}
               </div>
-              <p className="text-sm sm:text-base text-secondary-foreground">
+              <p className="text-sm sm:text-base text-secondary-foreground mb-2">
                 Expected total spending for next month
               </p>
+              {predictions?.predictionRange && (
+                <div className="text-xs sm:text-sm text-secondary-foreground">
+                  Range: {formatCurrency(predictions.predictionRange.min)} - {formatCurrency(predictions.predictionRange.max)}
+                </div>
+              )}
             </div>
 
             <div className="border-t border-glass-border pt-4">
               <p className="text-center text-xs sm:text-sm text-secondary-foreground mb-4">
                 Based on your average monthly spending over the last {predictions?.basedOnMonths || 0} {predictions?.basedOnMonths === 1 ? 'month' : 'months'}
               </p>
+
+              {/* Historical Spending Chart */}
+              {predictions?.historicalData && predictions.historicalData.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-neon mb-3 text-center">Historical Spending Trend</h3>
+                  <div className="h-32 sm:h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={predictions.historicalData}>
+                        <XAxis
+                          dataKey="month"
+                          tick={{ fontSize: 10 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis hide />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line
+                          type="monotone"
+                          dataKey="amount"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="text-center p-3 sm:p-4 rounded-lg bg-background-secondary/30">
@@ -201,12 +235,13 @@ const PredictionDashboard = () => {
 
                 </Tooltip>
               </div>
-              <div className={`text-sm sm:text-base font-medium ${
+              <div className={`text-sm sm:text-base font-medium flex items-center justify-center gap-1 ${
                 predictions?.trend === 'increasing' ? 'text-red-500' :
                 predictions?.trend === 'decreasing' ? 'text-green-500' : 'text-blue-500'
               }`}>
-                {predictions?.trend === 'increasing' ? '↗ Increasing' :
-                 predictions?.trend === 'decreasing' ? '↘ Decreasing' : '→ Stable'}
+                {predictions?.trend === 'increasing' ? <><TrendingUp className="h-4 w-4" /> Increasing</> :
+                 predictions?.trend === 'decreasing' ? <><TrendingDown className="h-4 w-4" /> Decreasing</> :
+                 <><Minus className="h-4 w-4" /> Stable</>}
               </div>
             </div>
 
@@ -332,9 +367,22 @@ const PredictionDashboard = () => {
                   <p className="text-lg font-bold text-secondary">{formatCurrency(selectedCategory.data.averageAmount)}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-sm font-medium">Total Transactions</p>
-                <p className="text-lg">{selectedCategory.data.transactionCount}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium">Total Transactions</p>
+                  <p className="text-lg">{selectedCategory.data.transactionCount}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Trend</p>
+                  <p className={`text-lg font-medium flex items-center gap-1 ${
+                    selectedCategory.data.trend === 'increasing' ? 'text-red-500' :
+                    selectedCategory.data.trend === 'decreasing' ? 'text-green-500' : 'text-blue-500'
+                  }`}>
+                    {selectedCategory.data.trend === 'increasing' ? <><TrendingUp className="h-4 w-4" /> Increasing</> :
+                     selectedCategory.data.trend === 'decreasing' ? <><TrendingDown className="h-4 w-4" /> Decreasing</> :
+                     <><Minus className="h-4 w-4" /> Stable</>}
+                  </p>
+                </div>
               </div>
               <div>
                 <p className="text-sm font-medium">Prediction Basis</p>
