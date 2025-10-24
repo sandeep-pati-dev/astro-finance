@@ -192,7 +192,12 @@ const PredictionDashboard = () => {
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-neon mb-3 text-center">Historical Spending Trend</h3>
                   <div className="h-32 sm:h-40">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ChartContainer config={{
+                      amount: {
+                        label: "Amount",
+                        color: "hsl(var(--primary))",
+                      },
+                    }} className="h-full">
                       <LineChart data={predictions.historicalData}>
                         <XAxis
                           dataKey="month"
@@ -205,12 +210,12 @@ const PredictionDashboard = () => {
                         <Line
                           type="monotone"
                           dataKey="amount"
-                          stroke="hsl(var(--primary))"
+                          stroke="var(--color-amount)"
                           strokeWidth={2}
-                          dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                          dot={{ fill: "var(--color-amount)", strokeWidth: 2, r: 4 }}
                         />
                       </LineChart>
-                    </ResponsiveContainer>
+                    </ChartContainer>
                   </div>
                 </div>
               )}
