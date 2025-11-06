@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, TrendingUp, Calendar, IndianRupee, BarChart3, Settings, LogOut, Info, Target, Edit, Trash2, ChevronRight, Activity, Wallet, PieChart, ArrowUp, ArrowDown, Zap, TrendingDown } from "lucide-react";
+import { Plus, TrendingUp, Calendar, IndianRupee, BarChart3, Settings, LogOut, Info, Target, Edit, Trash2, ChevronRight, Activity, Wallet, PieChart, ArrowUp, ArrowDown, Zap, TrendingDown, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/App";
 import { useNavigate } from "react-router-dom";
@@ -320,6 +320,7 @@ const Dashboard = () => {
 
   const quickActions = [
     { title: "Add Expense", icon: Plus, path: "/add-expense", gradient: "from-blue-600 via-blue-500 to-cyan-500", description: "Quick entry", glow: "blue" },
+    { title: "All Expenses", icon: Receipt, path: "/all-expenses", gradient: "from-indigo-600 via-indigo-500 to-purple-500", description: "View past expenses", glow: "indigo" },
     { title: "Analytics", icon: BarChart3, path: "/analytics", gradient: "from-purple-600 via-purple-500 to-pink-500", description: "View insights", glow: "purple" },
     { title: "Goals", icon: Target, path: "/goals", gradient: "from-green-600 via-emerald-500 to-teal-500", description: "Track progress", glow: "green" },
     { title: "Predictions", icon: Activity, path: "/predictions", gradient: "from-orange-600 via-amber-500 to-yellow-500", description: "AI forecasts", glow: "orange" },
@@ -559,7 +560,7 @@ const Dashboard = () => {
                   <PieChart className="h-5 w-5 text-blue-400" />
                 </div>
                 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                   {quickActions.map((action, index) => (
                     <motion.button
                       key={action.title}
