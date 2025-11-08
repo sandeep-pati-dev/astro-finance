@@ -304,79 +304,14 @@ const AllExpenses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black overflow-hidden relative">
-      {/* Enhanced Animated Background */}
-      <div className="fixed inset-0 opacity-30">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%)
-            `,
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
-
-      {/* Floating Gradient Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-1/4 -right-20 w-96 h-96 bg-indigo-500 rounded-full blur-3xl opacity-20"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-500 rounded-full blur-3xl opacity-20"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 w-96 h-96 bg-pink-500 rounded-full blur-3xl opacity-10"
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [-50, 50, -50],
-            y: [-50, 50, -50],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
+    <div className="min-h-screen bg-slate-900 overflow-hidden relative">
 
       <div className="relative z-10 pb-20 sm:pb-6">
         {/* Sticky Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/50 px-4 sm:px-6 py-4 sm:py-5"
+          className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800/50 px-4 sm:px-6 py-4 sm:py-5"
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between gap-4">
@@ -392,10 +327,8 @@ const AllExpenses = () => {
                   </Button>
                 </motion.div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">
-                    <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      All Expenses
-                    </span>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate text-white">
+                    All Expenses
                   </h1>
                 </div>
               </div>
@@ -406,9 +339,9 @@ const AllExpenses = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`relative rounded-full ${
+              className={`relative rounded-full ${
                     hasActiveFilters
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 border-transparent text-white"
+                      ? "bg-slate-800 border-slate-700 text-white"
                       : "bg-slate-800/50 border-slate-700 text-slate-300"
                   }`}
                 >
@@ -429,7 +362,7 @@ const AllExpenses = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="flex items-center justify-between gap-4 mt-4 p-3 rounded-2xl bg-gradient-to-r from-slate-800/50 to-slate-900/50 border border-slate-700/50"
+              className="flex items-center justify-between gap-4 mt-4 p-3 rounded-2xl bg-slate-800 border border-slate-700/50"
             >
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
@@ -465,7 +398,7 @@ const AllExpenses = () => {
               className="sticky top-[140px] sm:top-[130px] z-40 px-4 sm:px-6 pt-4"
             >
               <div className="max-w-7xl mx-auto">
-                <GlassCard className="p-4 backdrop-blur-xl bg-slate-900/80 border-slate-700/50">
+                <GlassCard className="p-4 bg-slate-900 border-slate-700/50">
                   {/* Search Bar */}
                   <div className="relative mb-4">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -498,7 +431,7 @@ const AllExpenses = () => {
                         onClick={() => setGroupByMonth(!groupByMonth)}
                         className={`rounded-full ${
                           groupByMonth
-                            ? "bg-gradient-to-r from-indigo-500 to-purple-500 border-transparent text-white"
+                            ? "bg-slate-800 border-slate-700 text-white"
                             : "bg-slate-800/50 border-slate-700 text-slate-300"
                         }`}
                       >
@@ -513,7 +446,7 @@ const AllExpenses = () => {
                         onClick={() => setShowPastExpenses(!showPastExpenses)}
                         className={`rounded-full ${
                           showPastExpenses
-                            ? "bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white"
+                            ? "bg-slate-800 border-slate-700 text-white"
                             : "bg-slate-800/50 border-slate-700 text-slate-300"
                         }`}
                       >
@@ -701,7 +634,7 @@ const AllExpenses = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
                     onClick={clearFilters}
-                    className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+                    className="rounded-full bg-slate-800 hover:bg-slate-700"
                   >
                     Clear Filters
                   </Button>
@@ -723,10 +656,10 @@ const AllExpenses = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: groupIndex * 0.05 }}
                     >
-                      <GlassCard className="p-4 sm:p-5 backdrop-blur-xl bg-slate-900/60 border-slate-700/50 overflow-hidden">
+                      <GlassCard className="p-4 sm:p-5 bg-slate-900 border-slate-700/50 overflow-hidden">
                         <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/50">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center">
                               <Calendar className="h-5 w-5 text-white" />
                             </div>
                             <div>
@@ -739,7 +672,7 @@ const AllExpenses = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                            <p className="text-xl font-bold text-emerald-400">
                               {formatCurrency(monthTotal)}
                             </p>
                           </div>
@@ -756,8 +689,8 @@ const AllExpenses = () => {
                               onClick={() => setSelectedExpense(expense)}
                               className="relative group cursor-pointer"
                             >
-                              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <div className="relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-slate-800/30 border border-slate-700/50 group-hover:border-indigo-500/50 transition-all">
+                              <div className="absolute inset-0 bg-slate-800/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <div className="relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-slate-800/30 border border-slate-700/50 group-hover:border-slate-600 transition-all">
                                 <motion.div
                                   className="w-12 h-12 rounded-xl bg-slate-700/50 flex items-center justify-center text-2xl flex-shrink-0"
                                   whileHover={{ rotate: 360 }}
@@ -780,7 +713,7 @@ const AllExpenses = () => {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <p className="text-base sm:text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent whitespace-nowrap">
+                                  <p className="text-base sm:text-lg font-bold text-indigo-400 whitespace-nowrap">
                                     {formatCurrency(expense.amount)}
                                   </p>
                                   <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors flex-shrink-0" />
@@ -814,10 +747,10 @@ const AllExpenses = () => {
                     onClick={() => setSelectedExpense(expense)}
                     className="relative group cursor-pointer"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 group-hover:border-indigo-500/50 transition-all">
+                    <div className="absolute inset-0 bg-slate-800/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-slate-900/60 border border-slate-700/50 group-hover:border-slate-600 transition-all">
                       <motion.div
-                        className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700/50 to-slate-800/50 flex items-center justify-center text-2xl flex-shrink-0 border border-slate-600/30"
+                        className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center text-2xl flex-shrink-0 border border-slate-600/30"
                         whileHover={{ rotate: 360, scale: 1.1 }}
                         transition={{ duration: 0.6 }}
                       >
@@ -838,7 +771,7 @@ const AllExpenses = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <p className="text-base sm:text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent whitespace-nowrap">
+                        <p className="text-base sm:text-lg font-bold text-indigo-400 whitespace-nowrap">
                           {formatCurrency(expense.amount)}
                         </p>
                         <motion.div
@@ -862,7 +795,7 @@ const AllExpenses = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-0 left-0 right-0 sm:hidden z-50 p-4 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pointer-events-none"
+        className="fixed bottom-0 left-0 right-0 sm:hidden z-50 p-4 bg-slate-900 pointer-events-none"
       >
         <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
           <Sparkles className="h-3 w-3" />
@@ -872,7 +805,7 @@ const AllExpenses = () => {
 
       {/* Expense Details Dialog */}
       <Dialog open={!!selectedExpense} onOpenChange={() => setSelectedExpense(null)}>
-        <DialogContent className="bg-slate-900/95 backdrop-blur-2xl border-slate-700/50 rounded-3xl max-w-md">
+        <DialogContent className="bg-slate-900 border-slate-700/50 rounded-3xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white text-xl font-bold flex items-center gap-3">
               <motion.div
@@ -902,7 +835,7 @@ const AllExpenses = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-400">Amount</label>
-                  <p className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 font-bold text-2xl">
+                  <p className="text-indigo-400 font-bold text-2xl">
                     {formatCurrency(selectedExpense.amount)}
                   </p>
                 </div>
@@ -926,7 +859,7 @@ const AllExpenses = () => {
                     navigate(`/expenses/${selectedExpense._id}/edit`);
                     setSelectedExpense(null);
                   }}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white"
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
@@ -950,7 +883,7 @@ const AllExpenses = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!expenseToDelete} onOpenChange={() => setExpenseToDelete(null)}>
-        <AlertDialogContent className="bg-slate-900/95 backdrop-blur-2xl border-slate-700/50 rounded-3xl">
+        <AlertDialogContent className="bg-slate-900 border-slate-700/50 rounded-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white text-xl font-bold flex items-center gap-2">
               <motion.div
@@ -964,9 +897,9 @@ const AllExpenses = () => {
             <AlertDialogDescription className="text-slate-300 text-base">
               This action cannot be undone. This will permanently delete the expense{" "}
               <span className="font-semibold text-white">"{expenseToDelete?.notes || expenseToDelete?.category}"</span> of{" "}
-              <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-red-600">
+              <span className="font-bold text-rose-400">
                 {formatCurrency(expenseToDelete?.amount || 0)}
-              </span>.
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -978,7 +911,7 @@ const AllExpenses = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <AlertDialogAction
                 onClick={handleDeleteExpense}
-                className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white border-rose-500/30 shadow-lg shadow-rose-500/25 transition-all duration-300"
+                className="bg-rose-600 hover:bg-rose-500 text-white border-rose-500/30 shadow-lg shadow-rose-500/25 transition-all duration-300"
               >
                 Delete Expense
               </AlertDialogAction>
