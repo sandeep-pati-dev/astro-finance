@@ -49,6 +49,7 @@ const AddExpense = () => {
   const categories = [
     { value: "food", label: "Food & Dining", icon: "🍔", color: "from-orange-500 to-red-500", glow: "shadow-orange-500/50" },
     { value: "groceries", label: "Groceries", icon: "🛒", color: "from-green-500 to-emerald-500", glow: "shadow-green-500/50" },
+    { value: "vegetables", label: "Vegetables", icon: "🥦", color: "from-green-700 to-green-900", glow: "shadow-green-700/50" },
     { value: "transport", label: "Transport", icon: "🚗", color: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/50" },
     { value: "travel", label: "Travel", icon: "✈️", color: "from-sky-500 to-blue-600", glow: "shadow-sky-500/50" },
     { value: "shopping", label: "Shopping", icon: "🛍️", color: "from-pink-500 to-rose-500", glow: "shadow-pink-500/50" },

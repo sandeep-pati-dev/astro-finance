@@ -94,7 +94,11 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
       data: { expense }
     });
   } catch (error) {
-    next(error);
+    console.error('Error creating expense:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal Server Error'
+    });
   }
 });
 

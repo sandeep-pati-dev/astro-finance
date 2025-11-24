@@ -15,7 +15,7 @@ export const loginSchema = z.object({
 // Expense validation schemas
 export const expenseSchema = z.object({
   amount: z.number().min(0, 'Amount must be positive'),
-  category: z.enum(['food', 'groceries', 'transport', 'travel', 'shopping', 'personal_care', 'entertainment', 'subscriptions', 'bills', 'healthcare', 'insurance', 'education', 'gifts', 'savings', 'investments', 'other']),
+  category: z.enum(['food', 'groceries', 'vegetables', 'transport', 'travel', 'shopping', 'personal_care', 'entertainment', 'subscriptions', 'bills', 'healthcare', 'insurance', 'education', 'gifts', 'savings', 'investments', 'other']),
   date: z.union([z.string(), z.date()]).optional(),
   notes: z.string().max(500, 'Notes must be less than 500 characters').optional()
 });

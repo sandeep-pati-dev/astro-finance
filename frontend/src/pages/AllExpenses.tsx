@@ -186,6 +186,7 @@ const AllExpenses = () => {
     const emojiMap: { [key: string]: string } = {
       food: "🍔",
       groceries: "🛒",
+      vegetables: "🥦",
       transport: "🚗",
       travel: "✈️",
       shopping: "🛍️",
@@ -488,6 +489,7 @@ const AllExpenses = () => {
                           <SelectItem value="all">All Categories</SelectItem>
                           <SelectItem value="food">🍔 Food</SelectItem>
                           <SelectItem value="groceries">🛒 Groceries</SelectItem>
+                          <SelectItem value="vegetables">🥦 Vegetables</SelectItem>
                           <SelectItem value="transport">🚗 Transport</SelectItem>
                           <SelectItem value="travel">✈️ Travel</SelectItem>
                           <SelectItem value="shopping">🛍️ Shopping</SelectItem>
