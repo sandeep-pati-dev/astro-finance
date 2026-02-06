@@ -23,7 +23,7 @@ const DeveloperInfoDialog: React.FC<DeveloperInfoDialogProps> = ({
     name: "Sandeep Pati",
     education: "B-tech Final Year",
     university: "GIET UNIVERSITY",
-    photo: "/profile_pic.jpg",
+    photo: "/profile_pic.jpeg",
     linkedin: "https://www.linkedin.com/in/sandeep-pati-537ba030b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
     instagram: "https://www.instagram.com/sandeep_27.2/",
     twitter: "https://x.com/sandeep_pati18",
