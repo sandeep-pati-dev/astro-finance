@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-// const API_BASE_URL = 'http://localhost:3001/api';
-
-const API_BASE_URL = 'https://astro-finance-1.onrender.com/api';
+/** Local Vite dev uses your machine; production build uses Render unless overridden. */
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3001/api' : 'https://astro-finance-1.onrender.com/api');
 
 
 const api = axios.create({
@@ -96,6 +97,7 @@ export const authApi = {
 export const expenseApi = {
   getExpenses: (filters?: {
     category?: string;
+    paymentMethod?: string;
     startDate?: string;
     endDate?: string;
     limit?: number;
@@ -120,6 +122,7 @@ export const expenseApi = {
   createExpense: (expenseData: {
     amount: number;
     category: string;
+    paymentMethod?: 'cash' | 'credit_card' | 'upi';
     date?: string;
     notes?: string;
   }) =>
@@ -128,6 +131,7 @@ export const expenseApi = {
   updateExpense: (id: string, expenseData: Partial<{
     amount: number;
     category: string;
+    paymentMethod?: 'cash' | 'credit_card' | 'upi';
     date: string;
     notes: string;
   }>) =>
@@ -136,8 +140,16 @@ export const expenseApi = {
   deleteExpense: (id: string) =>
     api.delete<ApiResponse<{ message: string }>>(`/expenses/${id}`),
   
-  getExpenseSummary: (period: 'day' | 'week' | 'month' | 'year' = 'month') =>
-    api.get<ApiResponse<{ summary: any }>>(`/expenses/summary/${period}`),
+  getExpenseSummary: (
+    period: 'day' | 'week' | 'month' | 'year' = 'month',
+    paymentMethod?: 'all' | 'cash' | 'credit_card' | 'upi'
+  ) => {
+    const q =
+      paymentMethod && paymentMethod !== 'all'
+        ? `?paymentMethod=${encodeURIComponent(paymentMethod)}`
+        : '';
+    return api.get<ApiResponse<{ summary: any }>>(`/expenses/summary/${period}${q}`);
+  },
   
   getExpenseSummaryAll: () =>
     api.get<ApiResponse<{ summary: { today: number; week: number; month: number } }>>('/expenses/summary-all'),
@@ -149,14 +161,40 @@ export const expenseApi = {
       month: { current: number; previous: number; change: number };
     } }>>('/expenses/summary-with-changes'),
   
-  getDailySpending: (period: 'week' | 'month' = 'week') =>
-    api.get<ApiResponse<{ dailySpending: any }>>(`/expenses/daily-summary/${period}`),
+  getDailySpending: (
+    period: 'week' | 'month' = 'week',
+    paymentMethod?: 'all' | 'cash' | 'credit_card' | 'upi'
+  ) => {
+    const q =
+      paymentMethod && paymentMethod !== 'all'
+        ? `?paymentMethod=${encodeURIComponent(paymentMethod)}`
+        : '';
+    return api.get<ApiResponse<{ dailySpending: any }>>(`/expenses/daily-summary/${period}${q}`);
+  },
 
-  getExpenseSummaryForMonth: (year: number, month: number) =>
-    api.get<ApiResponse<{ summary: any }>>(`/expenses/summary/month/${year}/${month}`),
+  getExpenseSummaryForMonth: (
+    year: number,
+    month: number,
+    paymentMethod?: 'all' | 'cash' | 'credit_card' | 'upi'
+  ) => {
+    const q =
+      paymentMethod && paymentMethod !== 'all'
+        ? `?paymentMethod=${encodeURIComponent(paymentMethod)}`
+        : '';
+    return api.get<ApiResponse<{ summary: any }>>(`/expenses/summary/month/${year}/${month}${q}`);
+  },
 
-  getDailySpendingForMonth: (year: number, month: number) =>
-    api.get<ApiResponse<{ dailySpending: any }>>(`/expenses/daily-summary/month/${year}/${month}`),
+  getDailySpendingForMonth: (
+    year: number,
+    month: number,
+    paymentMethod?: 'all' | 'cash' | 'credit_card' | 'upi'
+  ) => {
+    const q =
+      paymentMethod && paymentMethod !== 'all'
+        ? `?paymentMethod=${encodeURIComponent(paymentMethod)}`
+        : '';
+    return api.get<ApiResponse<{ dailySpending: any }>>(`/expenses/daily-summary/month/${year}/${month}${q}`);
+  },
 
   getMonthlySpendingTrends: (months: number = 6) =>
     api.get<ApiResponse<{ trends: any }>>(`/expenses/monthly-trends/${months}`),
@@ -190,6 +228,28 @@ export const userApi = {
     api.get<string>(`/users/export-data/${year}/${month}`, {
       responseType: 'blob'
     }),
+};
+
+export type WalletBucket = 'bank' | 'creditCard' | 'cash';
+
+export interface WalletBalancePayload {
+  bank: number;
+  creditCard: number;
+  cash: number;
+  total: number;
+  updatedAt: string;
+}
+
+// Balances (bank / credit card / cash — expenses deduct by payment method)
+export const balanceApi = {
+  get: () =>
+    api.get<ApiResponse<{ balance: WalletBalancePayload }>>('/balances'),
+
+  set: (body: Partial<{ bank: number; creditCard: number; cash: number }>) =>
+    api.put<ApiResponse<{ balance: WalletBalancePayload }>>('/balances', body),
+
+  add: (body: { bucket: WalletBucket; amount: number }) =>
+    api.post<ApiResponse<{ balance: WalletBalancePayload }>>('/balances/add', body),
 };
 
 // Budget endpoints

@@ -17,6 +17,7 @@ import GoalCreation from "./pages/GoalCreation";
 import GoalEdit from "./pages/GoalEdit";
 import PredictionDashboard from "./pages/PredictionDashboard";
 import AllExpenses from "./pages/AllExpenses";
+import Balances from "./pages/Balances";
 
 import { authApi } from "./lib/api";
 import { toast } from "@/hooks/use-toast";
@@ -102,6 +103,11 @@ const AnimatedRoutes = () => {
           <Route path="/all-expenses" element={
             <ProtectedRoute>
               <AllExpenses />
+            </ProtectedRoute>
+          } />
+          <Route path="/balances" element={
+            <ProtectedRoute>
+              <Balances />
             </ProtectedRoute>
           } />
           <Route path="/expenses/:id/edit" element={

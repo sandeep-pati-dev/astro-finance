@@ -30,9 +30,23 @@ interface Expense {
   _id: string;
   amount: number;
   category: string;
+  paymentMethod?: string;
   date: string;
   notes?: string;
   createdAt?: string;
+}
+
+function resolveExpensePayment(expense: { paymentMethod?: string }): "cash" | "credit_card" | "upi" {
+  if (expense.paymentMethod === "cash" || expense.paymentMethod === "upi" || expense.paymentMethod === "credit_card") {
+    return expense.paymentMethod;
+  }
+  return "credit_card";
+}
+
+function paymentMethodLabel(pm: "cash" | "credit_card" | "upi"): string {
+  if (pm === "cash") return "Cash";
+  if (pm === "upi") return "UPI";
+  return "Credit card";
 }
 
 const AllExpenses = () => {
@@ -43,6 +57,7 @@ const AllExpenses = () => {
   const [selectedYear, setSelectedYear] = useState<number | "all">("all");
   const [selectedMonth, setSelectedMonth] = useState<number | "all">("all");
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
+  const [selectedPayment, setSelectedPayment] = useState<"all" | "cash" | "credit_card" | "upi">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [userCreatedAt, setUserCreatedAt] = useState<Date | null>(null);
   const [groupByMonth, setGroupByMonth] = useState(false);
@@ -94,7 +109,7 @@ const AllExpenses = () => {
 
   useEffect(() => {
     filterExpenses();
-  }, [expenses, selectedYear, selectedMonth, selectedCategory, searchQuery, showPastExpenses]);
+  }, [expenses, selectedYear, selectedMonth, selectedCategory, selectedPayment, searchQuery, showPastExpenses]);
 
   const fetchExpenses = async () => {
     try {
@@ -122,6 +137,10 @@ const AllExpenses = () => {
       filtered = filtered.filter((expense) => expense.category === selectedCategory);
     }
 
+    if (selectedPayment !== "all") {
+      filtered = filtered.filter((expense) => resolveExpensePayment(expense) === selectedPayment);
+    }
+
     if (selectedYear !== "all") {
       filtered = filtered.filter((expense) => {
         const expenseDate = new Date(expense.date || expense.createdAt || "");
@@ -142,7 +161,8 @@ const AllExpenses = () => {
         (expense) =>
           expense.category.toLowerCase().includes(query) ||
           expense.notes?.toLowerCase().includes(query) ||
-          expense.amount.toString().includes(query)
+          expense.amount.toString().includes(query) ||
+          paymentMethodLabel(resolveExpensePayment(expense)).toLowerCase().includes(query)
       );
     }
 
@@ -228,6 +248,7 @@ const AllExpenses = () => {
     setSelectedYear("all");
     setSelectedMonth("all");
     setSelectedCategory("all");
+    setSelectedPayment("all");
     setSearchQuery("");
     setShowPastExpenses(false);
   };
@@ -277,7 +298,12 @@ const AllExpenses = () => {
     setSelectedMonth(newMonth);
   };
 
-  const hasActiveFilters = selectedYear !== "all" || selectedMonth !== "all" || selectedCategory !== "all" || showPastExpenses;
+  const hasActiveFilters =
+    selectedYear !== "all" ||
+    selectedMonth !== "all" ||
+    selectedCategory !== "all" ||
+    selectedPayment !== "all" ||
+    showPastExpenses;
 
   const handleDeleteExpense = async () => {
     if (!expenseToDelete) return;
@@ -476,7 +502,7 @@ const AllExpenses = () => {
                   </div>
 
                   {/* Filter Selects */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
                       <Select
                         value={selectedCategory}
@@ -504,6 +530,25 @@ const AllExpenses = () => {
                           <SelectItem value="savings">💰 Savings</SelectItem>
                           <SelectItem value="investments">📈 Investments</SelectItem>
                           <SelectItem value="other">📦 Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Select
+                        value={selectedPayment}
+                        onValueChange={(value) =>
+                          setSelectedPayment(value as "all" | "cash" | "credit_card" | "upi")
+                        }
+                      >
+                        <SelectTrigger className="h-11 bg-slate-800/50 border-slate-700 text-white rounded-xl">
+                          <SelectValue placeholder="Payment" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-slate-700 rounded-xl">
+                          <SelectItem value="all">All payments</SelectItem>
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="credit_card">Credit card</SelectItem>
+                          <SelectItem value="upi">UPI</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -708,6 +753,9 @@ const AllExpenses = () => {
                                     <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full bg-slate-700/50 border border-slate-600/30">
                                       {expense.category}
                                     </span>
+                                    <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full bg-slate-700/50 border border-slate-600/30">
+                                      {paymentMethodLabel(resolveExpensePayment(expense))}
+                                    </span>
                                     <span className="text-xs text-slate-500 flex items-center gap-1">
                                       <Calendar className="h-3 w-3" />
                                       {formatDate(expense.date || expense.createdAt || "")}
@@ -765,6 +813,9 @@ const AllExpenses = () => {
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full bg-slate-700/50 border border-slate-600/30">
                             {expense.category}
+                          </span>
+                          <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full bg-slate-700/50 border border-slate-600/30">
+                            {paymentMethodLabel(resolveExpensePayment(expense))}
                           </span>
                           <span className="text-xs text-slate-500 flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
@@ -846,6 +897,12 @@ const AllExpenses = () => {
                   <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600/30 text-white text-sm">
                     {getCategoryEmoji(selectedExpense.category)} {selectedExpense.category}
                   </span>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-400">Paid with</label>
+                  <p className="text-slate-200 text-sm font-medium">
+                    {paymentMethodLabel(resolveExpensePayment(selectedExpense))}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-400">Date</label>

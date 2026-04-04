@@ -1,5 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { ExpenseService } from '../services/expenseService';
+import { BalanceService } from '../services/balanceService';
 import { authenticate, AuthRequest } from '../middlewares/authMiddleware';
 import { expenseSchema, expenseUpdateSchema } from '../utils/validators';
 
@@ -12,11 +13,12 @@ router.use(authenticate);
 router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = (req.user!._id as any).toString();
-    const { category, startDate, endDate, limit = '10', page = '1' } = req.query;
+    const { category, paymentMethod, startDate, endDate, limit = '10', page = '1' } = req.query;
 
     const filters: any = {};
 
     if (category) filters.category = category;
+    if (paymentMethod) filters.paymentMethod = paymentMethod as string;
     if (startDate) filters.startDate = new Date(startDate as string);
     if (endDate) filters.endDate = new Date(endDate as string);
     if (limit) filters.limit = parseInt(limit as string);
@@ -89,16 +91,24 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
 
     const expense = await ExpenseService.createExpense(userId, validatedData);
 
+    try {
+      await BalanceService.debitForExpense(
+        userId,
+        expense.paymentMethod,
+        expense.amount
+      );
+    } catch (balanceErr) {
+      await ExpenseService.deleteExpense(userId, (expense._id as any).toString());
+      throw balanceErr;
+    }
+
     res.status(201).json({
       success: true,
       data: { expense }
     });
   } catch (error) {
     console.error('Error creating expense:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Internal Server Error'
-    });
+    next(error);
   }
 });
 
@@ -108,11 +118,22 @@ router.put('/:id', async (req: AuthRequest, res, next) => {
     const userId = (req.user!._id as any).toString();
     const validatedData = expenseUpdateSchema.parse(req.body);
 
+    const previous = await ExpenseService.getExpenseById(userId, req.params.id);
     const expense = await ExpenseService.updateExpense(userId, req.params.id, validatedData);
 
     if (!expense) {
       res.status(404).json({ success: false, error: 'Expense not found' });
       return;
+    }
+
+    if (previous) {
+      await BalanceService.reconcileExpenseChange(
+        userId,
+        previous.paymentMethod,
+        previous.amount,
+        expense.paymentMethod,
+        expense.amount
+      );
     }
 
     res.json({
@@ -135,6 +156,12 @@ router.delete('/:id', async (req: AuthRequest, res, next) => {
       return;
     }
 
+    await BalanceService.creditForExpenseRemoved(
+      userId,
+      expense.paymentMethod,
+      expense.amount
+    );
+
     res.json({
       success: true,
       data: { message: 'Expense deleted successfully' }
@@ -149,8 +176,9 @@ router.get('/summary/:period?', async (req: AuthRequest, res, next) => {
   try {
     const userId = (req.user!._id as any).toString();
     const period = (req.params.period as 'day' | 'week' | 'month' | 'year') || 'month';
+    const paymentMethod = req.query.paymentMethod as string | undefined;
 
-    const summary = await ExpenseService.getExpenseSummary(userId, period);
+    const summary = await ExpenseService.getExpenseSummary(userId, period, paymentMethod);
 
     res.json({
       success: true,
@@ -166,8 +194,9 @@ router.get('/daily-summary/:period?', async (req: AuthRequest, res, next) => {
   try {
     const userId = (req.user!._id as any).toString();
     const period = (req.params.period as 'week' | 'month') || 'week';
+    const paymentMethod = req.query.paymentMethod as string | undefined;
 
-    const dailySpending = await ExpenseService.getDailySpending(userId, period);
+    const dailySpending = await ExpenseService.getDailySpending(userId, period, paymentMethod);
 
     res.json({
       success: true,
@@ -184,8 +213,9 @@ router.get('/summary/month/:year/:month', async (req: AuthRequest, res, next) =>
     const userId = (req.user!._id as any).toString();
     const year = parseInt(req.params.year);
     const month = parseInt(req.params.month);
+    const paymentMethod = req.query.paymentMethod as string | undefined;
 
-    const summary = await ExpenseService.getExpenseSummaryForMonth(userId, year, month);
+    const summary = await ExpenseService.getExpenseSummaryForMonth(userId, year, month, paymentMethod);
 
     res.json({
       success: true,
@@ -202,8 +232,9 @@ router.get('/daily-summary/month/:year/:month', async (req: AuthRequest, res, ne
     const userId = (req.user!._id as any).toString();
     const year = parseInt(req.params.year);
     const month = parseInt(req.params.month);
+    const paymentMethod = req.query.paymentMethod as string | undefined;
 
-    const dailySpending = await ExpenseService.getDailySpendingForMonth(userId, year, month);
+    const dailySpending = await ExpenseService.getDailySpendingForMonth(userId, year, month, paymentMethod);
 
     res.json({
       success: true,

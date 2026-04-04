@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BarChart3, PieChart, TrendingUp, Download, Calendar, Wallet, Target, Activity, Zap } from "lucide-react";
+import { ArrowLeft, BarChart3, PieChart, TrendingUp, Download, Calendar, Wallet, Target, Activity, Zap, CreditCard, Banknote, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,10 +16,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+type PaymentView = "all" | "cash" | "credit_card" | "upi";
+
+const PAYMENT_VIEW_LABELS: Record<PaymentView, string> = {
+  all: "Overall",
+  cash: "Cash",
+  credit_card: "Credit card",
+  upi: "UPI",
+};
+
 const Analytics = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("week");
-  const [isLoading, setIsLoading] = useState(true);
+  const [paymentView, setPaymentView] = useState<PaymentView>("all");
+  /** initial = first ever chart load; refreshing = payment/tab/date change after that */
+  const [chartLoadStatus, setChartLoadStatus] = useState<"initial" | "idle" | "refreshing">("initial");
+  const analyticsFetchIdRef = useRef(0);
+  const analyticsHasCompletedOnceRef = useRef(false);
+  const topCategoryFetchIdRef = useRef(0);
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
@@ -79,8 +93,152 @@ const Analytics = () => {
   }, []);
 
   useEffect(() => {
-    fetchAnalyticsData();
-  }, [activeTab, selectedYear, selectedMonth]);
+    const reqId = ++analyticsFetchIdRef.current;
+    const pm = paymentView;
+
+    if (analyticsHasCompletedOnceRef.current) {
+      setChartLoadStatus("refreshing");
+    }
+
+    const run = async () => {
+      try {
+        if (activeTab === "history") {
+          const historyResponse = await expenseApi.getExpenseSummaryForMonth(selectedYear, selectedMonth, pm);
+          if (reqId !== analyticsFetchIdRef.current) return;
+          if (historyResponse.data.success) {
+            const data = historyResponse.data.data.summary;
+            const categoryColors = {
+              food: "#ff6b6b", groceries: "#ff4757", transport: "#4ecdc4",
+              travel: "#26de81", shopping: "#45b7d1", personal_care: "#a55eea",
+              entertainment: "#f9ca24", subscriptions: "#fd79a8", bills: "#6c5ce7",
+              healthcare: "#ff9ff3", insurance: "#00b894", education: "#1dd1a1",
+              gifts: "#e17055", savings: "#74b9ff", investments: "#00cec9", other: "#a0a0a0"
+            };
+            const categoryLabels = {
+              food: "Food & Dining", groceries: "Groceries", transport: "Transport",
+              travel: "Travel", shopping: "Shopping", personal_care: "Personal Care",
+              entertainment: "Entertainment", subscriptions: "Subscriptions",
+              bills: "Bills & Utilities", healthcare: "Healthcare", insurance: "Insurance",
+              education: "Education", gifts: "Gifts", savings: "Savings",
+              investments: "Investments", other: "Other"
+            };
+            const processedData = data.byCategory?.map((cat) => ({
+              category: categoryLabels[cat._id] || cat._id,
+              amount: cat.totalAmount || 0,
+              percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
+              color: categoryColors[cat._id] || "#a0a0a0"
+            })) || [];
+            setAnalyticsData((prev) => ({
+              ...prev,
+              history: { ...prev.history, byCategory: processedData }
+            }));
+          }
+          const dailyResponse = await expenseApi.getDailySpendingForMonth(selectedYear, selectedMonth, pm);
+          if (reqId !== analyticsFetchIdRef.current) return;
+          if (dailyResponse.data.success) {
+            const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
+            setAnalyticsData((prev) => ({
+              ...prev,
+              history: { ...prev.history, dailySpending: dailyData }
+            }));
+          }
+        } else if (activeTab === "week") {
+          const summaryResponse = await expenseApi.getExpenseSummary("week", pm);
+          if (reqId !== analyticsFetchIdRef.current) return;
+          if (summaryResponse.data.success) {
+            const data = summaryResponse.data.data.summary;
+            const categoryColors = {
+              food: "#ff6b6b", groceries: "#ff4757", transport: "#4ecdc4",
+              travel: "#26de81", shopping: "#45b7d1", personal_care: "#a55eea",
+              entertainment: "#f9ca24", subscriptions: "#fd79a8", bills: "#6c5ce7",
+              healthcare: "#ff9ff3", insurance: "#00b894", education: "#1dd1a1",
+              gifts: "#e17055", savings: "#74b9ff", investments: "#00cec9", other: "#a0a0a0"
+            };
+            const categoryLabels = {
+              food: "Food & Dining", groceries: "Groceries", transport: "Transport",
+              travel: "Travel", shopping: "Shopping", personal_care: "Personal Care",
+              entertainment: "Entertainment", subscriptions: "Subscriptions",
+              bills: "Bills & Utilities", healthcare: "Healthcare", insurance: "Insurance",
+              education: "Education", gifts: "Gifts", savings: "Savings",
+              investments: "Investments", other: "Other"
+            };
+            const processedData = data.byCategory?.map((cat) => ({
+              category: categoryLabels[cat._id] || cat._id,
+              amount: cat.totalAmount || 0,
+              percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
+              color: categoryColors[cat._id] || "#a0a0a0"
+            })) || [];
+            setAnalyticsData((prev) => ({
+              ...prev,
+              weekly: processedData
+            }));
+          }
+          const dailyResponse = await expenseApi.getDailySpending("week", pm);
+          if (reqId !== analyticsFetchIdRef.current) return;
+          if (dailyResponse.data.success) {
+            const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
+            setAnalyticsData((prev) => ({
+              ...prev,
+              daily: dailyData
+            }));
+          }
+        } else if (activeTab === "month") {
+          const summaryResponse = await expenseApi.getExpenseSummaryForMonth(currentYear, currentMonth, pm);
+          if (reqId !== analyticsFetchIdRef.current) return;
+          if (summaryResponse.data.success) {
+            const data = summaryResponse.data.data.summary;
+            const categoryColors = {
+              food: "#ff6b6b", groceries: "#ff4757", transport: "#4ecdc4",
+              travel: "#26de81", shopping: "#45b7d1", personal_care: "#a55eea",
+              entertainment: "#f9ca24", subscriptions: "#fd79a8", bills: "#6c5ce7",
+              healthcare: "#ff9ff3", insurance: "#00b894", education: "#1dd1a1",
+              gifts: "#e17055", savings: "#74b9ff", investments: "#00cec9", other: "#a0a0a0"
+            };
+            const categoryLabels = {
+              food: "Food & Dining", groceries: "Groceries", transport: "Transport",
+              travel: "Travel", shopping: "Shopping", personal_care: "Personal Care",
+              entertainment: "Entertainment", subscriptions: "Subscriptions",
+              bills: "Bills & Utilities", healthcare: "Healthcare", insurance: "Insurance",
+              education: "Education", gifts: "Gifts", savings: "Savings",
+              investments: "Investments", other: "Other"
+            };
+            const processedData = data.byCategory?.map((cat) => ({
+              category: categoryLabels[cat._id] || cat._id,
+              amount: cat.totalAmount || 0,
+              percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
+              color: categoryColors[cat._id] || "#a0a0a0"
+            })) || [];
+            setAnalyticsData((prev) => ({
+              ...prev,
+              monthly: processedData
+            }));
+          }
+          const dailyResponse = await expenseApi.getDailySpendingForMonth(currentYear, currentMonth, pm);
+          if (reqId !== analyticsFetchIdRef.current) return;
+          if (dailyResponse.data.success) {
+            const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
+            setAnalyticsData((prev) => ({
+              ...prev,
+              daily: dailyData
+            }));
+          }
+        }
+      } catch (error) {
+        if (reqId !== analyticsFetchIdRef.current) return;
+        toast({
+          title: "Error",
+          description: "Failed to load analytics data",
+          variant: "destructive"
+        });
+      } finally {
+        if (reqId !== analyticsFetchIdRef.current) return;
+        analyticsHasCompletedOnceRef.current = true;
+        setChartLoadStatus("idle");
+      }
+    };
+
+    run();
+  }, [activeTab, selectedYear, selectedMonth, paymentView]);
 
   useEffect(() => {
     const fetchInsightsData = async () => {
@@ -110,159 +268,63 @@ const Analytics = () => {
           }));
           setEditBudgetAmount(budget?.amount || 0);
         }
-
-        const expenseSummaryResponse = await expenseApi.getExpenseSummary("month");
-        if (expenseSummaryResponse.data.success) {
-          const summary = expenseSummaryResponse.data.data.summary;
-          const topCategory = summary.byCategory?.[0];
-          if (topCategory) {
-            const categoryLabels = {
-              "food": "Food & Dining", "transport": "Transport", "shopping": "Shopping",
-              "entertainment": "Entertainment", "bills": "Bills & Utilities", "healthcare": "Healthcare",
-              "education": "Education", "other": "Other"
-            };
-            setInsightsData(prev => ({
-              ...prev,
-              topCategory: {
-                category: categoryLabels[topCategory._id] || topCategory._id,
-                amount: topCategory.totalAmount || 0
-              }
-            }));
-          }
-        }
       } catch (error) {}
     };
     fetchInsightsData();
   }, []);
 
-  const fetchAnalyticsData = async () => {
-    try {
-      setIsLoading(true);
-      if (activeTab === "history") {
-        const historyResponse = await expenseApi.getExpenseSummaryForMonth(selectedYear, selectedMonth);
-        if (historyResponse.data.success) {
-          const data = historyResponse.data.data.summary;
-          const categoryColors = {
-            "food": "#ff6b6b", "groceries": "#ff4757", "transport": "#4ecdc4",
-            "travel": "#26de81", "shopping": "#45b7d1", "personal_care": "#a55eea",
-            "entertainment": "#f9ca24", "subscriptions": "#fd79a8", "bills": "#6c5ce7",
-            "healthcare": "#ff9ff3", "insurance": "#00b894", "education": "#1dd1a1",
-            "gifts": "#e17055", "savings": "#74b9ff", "investments": "#00cec9", "other": "#a0a0a0"
+  useEffect(() => {
+    const id = ++topCategoryFetchIdRef.current;
+    const pm = paymentView;
+    (async () => {
+      try {
+        const expenseSummaryResponse = await expenseApi.getExpenseSummary("month", pm);
+        if (id !== topCategoryFetchIdRef.current) return;
+        if (expenseSummaryResponse.data.success) {
+          const summary = expenseSummaryResponse.data.data.summary;
+          const topCategory = summary.byCategory?.[0];
+          const categoryLabels: Record<string, string> = {
+            food: "Food & Dining",
+            groceries: "Groceries",
+            vegetables: "Vegetables",
+            transport: "Transport",
+            travel: "Travel",
+            shopping: "Shopping",
+            personal_care: "Personal Care",
+            entertainment: "Entertainment",
+            subscriptions: "Subscriptions",
+            bills: "Bills & Utilities",
+            healthcare: "Healthcare",
+            insurance: "Insurance",
+            education: "Education",
+            gifts: "Gifts",
+            savings: "Savings",
+            investments: "Investments",
+            other: "Other",
           };
-          const categoryLabels = {
-            "food": "Food & Dining", "groceries": "Groceries", "transport": "Transport",
-            "travel": "Travel", "shopping": "Shopping", "personal_care": "Personal Care",
-            "entertainment": "Entertainment", "subscriptions": "Subscriptions",
-            "bills": "Bills & Utilities", "healthcare": "Healthcare", "insurance": "Insurance",
-            "education": "Education", "gifts": "Gifts", "savings": "Savings",
-            "investments": "Investments", "other": "Other"
-          };
-          const processedData = data.byCategory?.map((cat) => ({
-            category: categoryLabels[cat._id] || cat._id,
-            amount: cat.totalAmount || 0,
-            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
-            color: categoryColors[cat._id] || "#a0a0a0"
-          })) || [];
-          setAnalyticsData(prev => ({
-            ...prev,
-            history: { ...prev.history, byCategory: processedData }
-          }));
+          if (topCategory) {
+            setInsightsData((prev) => ({
+              ...prev,
+              topCategory: {
+                category: categoryLabels[topCategory._id] || topCategory._id,
+                amount: topCategory.totalAmount || 0,
+              },
+            }));
+          } else {
+            setInsightsData((prev) => ({
+              ...prev,
+              topCategory: { category: "—", amount: 0 },
+            }));
+          }
         }
-        const dailyResponse = await expenseApi.getDailySpendingForMonth(selectedYear, selectedMonth);
-        if (dailyResponse.data.success) {
-          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
-          setAnalyticsData(prev => ({
-            ...prev,
-            history: { ...prev.history, dailySpending: dailyData }
-          }));
-        }
-      } else if (activeTab === "week") {
-        const summaryResponse = await expenseApi.getExpenseSummary("week");
-        if (summaryResponse.data.success) {
-          const data = summaryResponse.data.data.summary;
-          const categoryColors = {
-            "food": "#ff6b6b", "groceries": "#ff4757", "transport": "#4ecdc4",
-            "travel": "#26de81", "shopping": "#45b7d1", "personal_care": "#a55eea",
-            "entertainment": "#f9ca24", "subscriptions": "#fd79a8", "bills": "#6c5ce7",
-            "healthcare": "#ff9ff3", "insurance": "#00b894", "education": "#1dd1a1",
-            "gifts": "#e17055", "savings": "#74b9ff", "investments": "#00cec9", "other": "#a0a0a0"
-          };
-          const categoryLabels = {
-            "food": "Food & Dining", "groceries": "Groceries", "transport": "Transport",
-            "travel": "Travel", "shopping": "Shopping", "personal_care": "Personal Care",
-            "entertainment": "Entertainment", "subscriptions": "Subscriptions",
-            "bills": "Bills & Utilities", "healthcare": "Healthcare", "insurance": "Insurance",
-            "education": "Education", "gifts": "Gifts", "savings": "Savings",
-            "investments": "Investments", "other": "Other"
-          };
-          const processedData = data.byCategory?.map((cat) => ({
-            category: categoryLabels[cat._id] || cat._id,
-            amount: cat.totalAmount || 0,
-            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
-            color: categoryColors[cat._id] || "#a0a0a0"
-          })) || [];
-          setAnalyticsData(prev => ({
-            ...prev,
-            weekly: processedData
-          }));
-        }
-        const dailyResponse = await expenseApi.getDailySpending("week");
-        if (dailyResponse.data.success) {
-          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
-          setAnalyticsData(prev => ({
-            ...prev,
-            daily: dailyData
-          }));
-        }
-      } else if (activeTab === "month") {
-        const summaryResponse = await expenseApi.getExpenseSummaryForMonth(currentYear, currentMonth);
-        if (summaryResponse.data.success) {
-          const data = summaryResponse.data.data.summary;
-          const categoryColors = {
-            "food": "#ff6b6b", "groceries": "#ff4757", "transport": "#4ecdc4",
-            "travel": "#26de81", "shopping": "#45b7d1", "personal_care": "#a55eea",
-            "entertainment": "#f9ca24", "subscriptions": "#fd79a8", "bills": "#6c5ce7",
-            "healthcare": "#ff9ff3", "insurance": "#00b894", "education": "#1dd1a1",
-            "gifts": "#e17055", "savings": "#74b9ff", "investments": "#00cec9", "other": "#a0a0a0"
-          };
-          const categoryLabels = {
-            "food": "Food & Dining", "groceries": "Groceries", "transport": "Transport",
-            "travel": "Travel", "shopping": "Shopping", "personal_care": "Personal Care",
-            "entertainment": "Entertainment", "subscriptions": "Subscriptions",
-            "bills": "Bills & Utilities", "healthcare": "Healthcare", "insurance": "Insurance",
-            "education": "Education", "gifts": "Gifts", "savings": "Savings",
-            "investments": "Investments", "other": "Other"
-          };
-          const processedData = data.byCategory?.map((cat) => ({
-            category: categoryLabels[cat._id] || cat._id,
-            amount: cat.totalAmount || 0,
-            percentage: data.total > 0 ? Math.round((cat.totalAmount / data.total) * 100) : 0,
-            color: categoryColors[cat._id] || "#a0a0a0"
-          })) || [];
-          setAnalyticsData(prev => ({
-            ...prev,
-            monthly: processedData
-          }));
-        }
-        const dailyResponse = await expenseApi.getDailySpendingForMonth(currentYear, currentMonth);
-        if (dailyResponse.data.success) {
-          const dailyData = dailyResponse.data.data.dailySpending.dailySpending;
-          setAnalyticsData(prev => ({
-            ...prev,
-            daily: dailyData
-          }));
-        }
+      } catch {
+        /* ignore */
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load analytics data",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    })();
+  }, [paymentView]);
+
+  const chartRefreshing = chartLoadStatus === "refreshing";
+  const chartsInitialLoad = chartLoadStatus === "initial";
 
   const currentData = activeTab === "history" ? analyticsData.history.byCategory : 
                       activeTab === "week" ? analyticsData.weekly : analyticsData.monthly;
@@ -657,6 +719,55 @@ const Analytics = () => {
               </Button>
             </div>
 
+            <motion.div
+              className="mb-6"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p className="text-sm font-medium text-foreground mb-2">Payment method</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Charts and top category follow this filter. Budget and month-over-month trend use all spending.
+                {import.meta.env.DEV && (
+                  <span className="block mt-1 text-[11px] opacity-80">
+                    Dev uses the API at <code className="text-purple-300">localhost:3001</code> — run the backend there for payment filters.
+                  </span>
+                )}
+              </p>
+              <motion.div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label="Filter charts by payment method"
+                layout
+              >
+                {(
+                  [
+                    { value: "all" as const, icon: Wallet, label: PAYMENT_VIEW_LABELS.all },
+                    { value: "cash" as const, icon: Banknote, label: PAYMENT_VIEW_LABELS.cash },
+                    { value: "credit_card" as const, icon: CreditCard, label: PAYMENT_VIEW_LABELS.credit_card },
+                    { value: "upi" as const, icon: Smartphone, label: PAYMENT_VIEW_LABELS.upi },
+                  ] as const
+                ).map(({ value, icon: Icon, label }) => (
+                  <motion.div key={value} layout whileTap={{ scale: 0.97 }}>
+                    <Button
+                      type="button"
+                      variant={paymentView === value ? "default" : "outline"}
+                      size="sm"
+                      aria-pressed={paymentView === value}
+                      onClick={() => setPaymentView(value)}
+                      className={
+                        paymentView === value
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-md shadow-purple-900/30"
+                          : "glass border-purple-500/30 hover:border-purple-500/60 transition-colors duration-200"
+                      }
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {label}
+                    </Button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+
             {activeTab === "history" && (
               <motion.div
                 className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"
@@ -718,7 +829,24 @@ const Analytics = () => {
 
       
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 order-1 lg:order-1">
+            <div className="relative order-1 lg:order-1 min-h-[280px]">
+              {chartRefreshing && (
+                <div
+                  className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-background/45 backdrop-blur-[3px] pointer-events-none"
+                  aria-hidden
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.75, repeat: Infinity, ease: "linear" }}
+                    className="w-11 h-11 border-4 border-purple-500/35 border-t-purple-400 rounded-full shadow-lg"
+                  />
+                </div>
+              )}
+              <motion.div
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+                animate={{ opacity: chartRefreshing ? 0.42 : 1 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+              >
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -729,10 +857,15 @@ const Analytics = () => {
                   <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
                     <PieChart className="h-5 w-5 text-purple-400" />
                   </div>
-                  <h2 className="text-xl font-bold">Category Distribution</h2>
+                  <div>
+                    <h2 className="text-xl font-bold">Category Distribution</h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {PAYMENT_VIEW_LABELS[paymentView]} spending
+                    </p>
+                  </div>
                 </div>
                 
-                {isLoading ? (
+                {chartsInitialLoad ? (
                   <div className="flex items-center justify-center h-64">
                     <motion.div
                       animate={{ rotate: 360 }}
@@ -747,7 +880,7 @@ const Analytics = () => {
                   </div>
                 ) : (
                   <>
-                    <DonutChartComponent />
+                    <DonutChartComponent key={`donut-${paymentView}-${activeTab}-${selectedYear}-${selectedMonth}`} />
                     
                     <div className="space-y-2 mt-6 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent">
                       {currentData.map((item, index) => (
@@ -792,13 +925,13 @@ const Analytics = () => {
                   <div>
                     <h2 className="text-xl font-bold">Daily Spending Pattern</h2>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {activeTab === "week" ? "This Week" : activeTab === "month" ? "This Month" : 
+                      {PAYMENT_VIEW_LABELS[paymentView]} · {activeTab === "week" ? "This Week" : activeTab === "month" ? "This Month" :
                        `${monthLabels.find(m => m.value === selectedMonth)?.label} ${selectedYear}`}
                     </p>
                   </div>
                 </div>
                 
-                {isLoading ? (
+                {chartsInitialLoad ? (
                   <div className="flex items-center justify-center h-64">
                     <motion.div
                       animate={{ rotate: 360 }}
@@ -813,7 +946,7 @@ const Analytics = () => {
                   </div>
                 ) : (
                   <>
-                    <EnhancedBarChart />
+                    <EnhancedBarChart key={`bars-${paymentView}-${activeTab}-${selectedYear}-${selectedMonth}`} />
                     
                     <div className="grid grid-cols-3 gap-3 mt-6">
                       <motion.div 
@@ -840,6 +973,7 @@ const Analytics = () => {
                     </div>
                   </>
                 )}
+              </motion.div>
               </motion.div>
             </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6 order-2 lg:order-2">
@@ -950,6 +1084,7 @@ const Analytics = () => {
                   <h3 className="text-lg font-semibold">Top Category</h3>
                 </div>
                 <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground">{PAYMENT_VIEW_LABELS[paymentView]} · this month</p>
                   <div>
                     <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-1">
                       {insightsData.topCategory.category}

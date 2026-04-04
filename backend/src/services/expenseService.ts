@@ -2,7 +2,32 @@ import Expense, { IExpense } from '../models/Expense';
 import { ExpenseInput, ExpenseUpdateInput } from '../utils/validators';
 import { Types } from 'mongoose';
 
+export type ExpensePaymentMethodFilter = 'all' | 'cash' | 'credit_card' | 'upi';
+
 export class ExpenseService {
+  private static normalizePaymentFilter(paymentMethod?: string): ExpensePaymentMethodFilter {
+    const allowed: ExpensePaymentMethodFilter[] = ['all', 'cash', 'credit_card', 'upi'];
+    if (paymentMethod && allowed.includes(paymentMethod as ExpensePaymentMethodFilter)) {
+      return paymentMethod as ExpensePaymentMethodFilter;
+    }
+    return 'all';
+  }
+
+  /** Merges payment-method constraint into a Mongo query or $match object (mutates `query`). */
+  static applyPaymentToQuery(query: Record<string, unknown>, paymentMethod?: string): void {
+    const f = ExpenseService.normalizePaymentFilter(paymentMethod);
+    if (f === 'all') return;
+    if (f === 'credit_card') {
+      query.$or = [
+        { paymentMethod: 'credit_card' },
+        { paymentMethod: { $exists: false } },
+        { paymentMethod: null }
+      ];
+    } else {
+      (query as { paymentMethod: string }).paymentMethod = f;
+    }
+  }
+
   static async createExpense(userId: string, expenseData: ExpenseInput): Promise<IExpense> {
     let expenseDate: Date;
     
@@ -33,23 +58,27 @@ export class ExpenseService {
 
   static async getExpenses(userId: string, filters: {
     category?: string;
+    paymentMethod?: string;
     startDate?: Date;
     endDate?: Date;
     limit?: number;
     page?: number;
   } = {}): Promise<{ expenses: IExpense[]; total: number }> {
-    const { category, startDate, endDate, limit = 10, page = 1 } = filters;
+    const { category, paymentMethod, startDate, endDate, limit = 10, page = 1 } = filters;
     
-    const query: any = { userId: new Types.ObjectId(userId) };
+    const query: Record<string, unknown> = { userId: new Types.ObjectId(userId) };
     
     if (category) {
       query.category = category;
     }
+
+    ExpenseService.applyPaymentToQuery(query, paymentMethod);
     
     if (startDate || endDate) {
-      query.date = {};
-      if (startDate) query.date.$gte = startDate;
-      if (endDate) query.date.$lte = endDate;
+      (query as { date: { $gte?: Date; $lte?: Date } }).date = {};
+      const d = (query as { date: { $gte?: Date; $lte?: Date } }).date;
+      if (startDate) d.$gte = startDate;
+      if (endDate) d.$lte = endDate;
     }
 
     const skip = (page - 1) * limit;
@@ -102,7 +131,11 @@ export class ExpenseService {
     });
   }
 
-  static async getExpenseSummary(userId: string, period: 'day' | 'week' | 'month' | 'year' = 'month'): Promise<any> {
+  static async getExpenseSummary(
+    userId: string,
+    period: 'day' | 'week' | 'month' | 'year' = 'month',
+    paymentMethod?: string
+  ): Promise<any> {
     const now = new Date();
     let startDate: Date;
 
@@ -134,13 +167,14 @@ export class ExpenseService {
     // End date should be end of today in UTC
     const endOfToday = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 1));
 
+    const match: Record<string, unknown> = {
+      userId: new Types.ObjectId(userId),
+      date: { $gte: startDate, $lte: endOfToday }
+    };
+    ExpenseService.applyPaymentToQuery(match, paymentMethod);
+
     const expenses = await Expense.aggregate([
-      {
-        $match: {
-          userId: new Types.ObjectId(userId),
-          date: { $gte: startDate, $lte: endOfToday }
-        }
-      },
+      { $match: match },
       {
         $group: {
           _id: '$category',
@@ -160,11 +194,12 @@ export class ExpenseService {
       total,
       byCategory: expenses,
       startDate,
-      endDate: endOfToday
+      endDate: endOfToday,
+      paymentMethod: ExpenseService.normalizePaymentFilter(paymentMethod)
     };
   }
 
-  static async getDailySpending(userId: string, period: 'week' | 'month'): Promise<any> {
+  static async getDailySpending(userId: string, period: 'week' | 'month', paymentMethod?: string): Promise<any> {
     const now = new Date();
     let startDate: Date;
 
@@ -188,14 +223,14 @@ export class ExpenseService {
     // End date should be end of today in UTC
     const endOfToday = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 1));
 
-    // Get daily spending data
+    const matchDaily: Record<string, unknown> = {
+      userId: new Types.ObjectId(userId),
+      date: { $gte: startDate, $lte: endOfToday }
+    };
+    ExpenseService.applyPaymentToQuery(matchDaily, paymentMethod);
+
     const dailySpending = await Expense.aggregate([
-      {
-        $match: {
-          userId: new Types.ObjectId(userId),
-          date: { $gte: startDate, $lte: endOfToday }
-        }
-      },
+      { $match: matchDaily },
       {
         $group: {
           _id: {
@@ -212,7 +247,6 @@ export class ExpenseService {
       }
     ]);
 
-    // Format the data for frontend consumption
     const formattedData = dailySpending.map(item => {
       // Create UTC date from the UTC date parts
       const utcDate = new Date(Date.UTC(item._id.year, item._id.month - 1, item._id.day));
@@ -258,22 +292,29 @@ export class ExpenseService {
       period,
       dailySpending: allDays,
       startDate,
-      endDate: endOfToday
+      endDate: endOfToday,
+      paymentMethod: ExpenseService.normalizePaymentFilter(paymentMethod)
     };
   }
 
-  static async getExpenseSummaryForMonth(userId: string, year: number, month: number): Promise<any> {
+  static async getExpenseSummaryForMonth(
+    userId: string,
+    year: number,
+    month: number,
+    paymentMethod?: string
+  ): Promise<any> {
     // Use UTC dates for start and end of month
     const startDate = new Date(Date.UTC(year, month - 1, 1));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
+    const matchMonth: Record<string, unknown> = {
+      userId: new Types.ObjectId(userId),
+      date: { $gte: startDate, $lte: endDate }
+    };
+    ExpenseService.applyPaymentToQuery(matchMonth, paymentMethod);
+
     const expenses = await Expense.aggregate([
-      {
-        $match: {
-          userId: new Types.ObjectId(userId),
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
+      { $match: matchMonth },
       {
         $group: {
           _id: '$category',
@@ -295,23 +336,29 @@ export class ExpenseService {
       total,
       byCategory: expenses,
       startDate,
-      endDate
+      endDate,
+      paymentMethod: ExpenseService.normalizePaymentFilter(paymentMethod)
     };
   }
 
-  static async getDailySpendingForMonth(userId: string, year: number, month: number): Promise<any> {
+  static async getDailySpendingForMonth(
+    userId: string,
+    year: number,
+    month: number,
+    paymentMethod?: string
+  ): Promise<any> {
     // Use UTC dates for start and end of month
     const startDate = new Date(Date.UTC(year, month - 1, 1));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
-    // Get daily spending data
+    const matchMonthDaily: Record<string, unknown> = {
+      userId: new Types.ObjectId(userId),
+      date: { $gte: startDate, $lte: endDate }
+    };
+    ExpenseService.applyPaymentToQuery(matchMonthDaily, paymentMethod);
+
     const dailySpending = await Expense.aggregate([
-      {
-        $match: {
-          userId: new Types.ObjectId(userId),
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
+      { $match: matchMonthDaily },
       {
         $group: {
           _id: {
@@ -328,7 +375,6 @@ export class ExpenseService {
       }
     ]);
 
-    // Format the data for frontend consumption
     const formattedData = dailySpending.map(item => {
       // Create UTC date from the UTC date parts
       const utcDate = new Date(Date.UTC(item._id.year, item._id.month - 1, item._id.day));
@@ -346,7 +392,6 @@ export class ExpenseService {
       };
     });
 
-    // Fill in missing days with zero amounts
     const allDays = [];
     const currentDate = new Date(startDate);
     
@@ -376,7 +421,8 @@ export class ExpenseService {
       month,
       dailySpending: allDays,
       startDate,
-      endDate
+      endDate,
+      paymentMethod: ExpenseService.normalizePaymentFilter(paymentMethod)
     };
   }
 

@@ -43,13 +43,19 @@ export class UserService {
     });
 
     // Prepare CSV header
-    const header = ['Date', 'Category', 'Amount', 'Notes'];
-    const rows = expenses.expenses.map(expense => [
-      `"${expense.date.toISOString().split('T')[0]}"`,
-      expense.category,
-      expense.amount.toFixed(2),
-      expense.notes ? `"${expense.notes.replace(/"/g, '""')}"` : ''
-    ]);
+    const header = ['Date', 'Category', 'Amount', 'Payment', 'Notes'];
+    const rows = expenses.expenses.map(expense => {
+      const pm = (expense as { paymentMethod?: string }).paymentMethod ?? 'credit_card';
+      const paymentLabel =
+        pm === 'cash' ? 'Cash' : pm === 'upi' ? 'UPI' : 'Credit card';
+      return [
+        `"${expense.date.toISOString().split('T')[0]}"`,
+        expense.category,
+        expense.amount.toFixed(2),
+        paymentLabel,
+        expense.notes ? `"${expense.notes.replace(/"/g, '""')}"` : ''
+      ];
+    });
 
     // Combine header and rows
     const csvContent = [header, ...rows].map(row => row.join(',')).join('\n');

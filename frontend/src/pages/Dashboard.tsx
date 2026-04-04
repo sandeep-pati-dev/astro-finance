@@ -320,6 +320,7 @@ const Dashboard = () => {
 
   const quickActions = [
     { title: "Add Expense", icon: Plus, path: "/add-expense", gradient: "from-blue-600 via-blue-500 to-cyan-500", description: "Quick entry", glow: "blue" },
+    { title: "My Balances", icon: Wallet, path: "/balances", gradient: "from-teal-600 via-cyan-500 to-sky-500", description: "Bank, card & cash", glow: "teal" },
     { title: "All Expenses", icon: Receipt, path: "/all-expenses", gradient: "from-indigo-600 via-indigo-500 to-purple-500", description: "View past expenses", glow: "indigo" },
     { title: "Analytics", icon: BarChart3, path: "/analytics", gradient: "from-purple-600 via-purple-500 to-pink-500", description: "View insights", glow: "purple" },
     { title: "Goals", icon: Target, path: "/goals", gradient: "from-green-600 via-emerald-500 to-teal-500", description: "Track progress", glow: "green" },

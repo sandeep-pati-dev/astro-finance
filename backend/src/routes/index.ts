@@ -6,10 +6,12 @@ import budgetRoutes from './budgetRoutes';
 import goalRoutes from './goalRoutes';
 import predictionRoutes from './predictionRoutes';
 import notificationRoutes from './notificationRoutes';
+import balanceRoutes from './balanceRoutes';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/balances', balanceRoutes);
 router.use('/expenses', expenseRoutes);
 router.use('/users', userRoutes);
 router.use('/budgets', budgetRoutes);

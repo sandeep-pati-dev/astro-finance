@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, IndianRupee, Tag, Calendar, FileText, Check } from "lucide-react";
+import { ArrowLeft, IndianRupee, Tag, Calendar, FileText, Check, Banknote, CreditCard, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,7 @@ const ExpenseEdit = () => {
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
+    paymentMethod: "credit_card" as "cash" | "credit_card" | "upi",
     date: "",
     notes: ""
   });
@@ -52,6 +53,9 @@ const ExpenseEdit = () => {
           setFormData({
             amount: expense.amount.toString(),
             category: expense.category,
+            paymentMethod: expense.paymentMethod === "cash" || expense.paymentMethod === "upi" || expense.paymentMethod === "credit_card"
+              ? expense.paymentMethod
+              : "credit_card",
             date: expense.date ? new Date(expense.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'),
             notes: expense.notes || ""
           });
@@ -90,6 +94,7 @@ const ExpenseEdit = () => {
       const response = await expenseApi.updateExpense(id, {
         amount: parseFloat(formData.amount),
         category: formData.category,
+        paymentMethod: formData.paymentMethod,
         date: formData.date,
         notes: formData.notes
       });
@@ -252,6 +257,46 @@ const ExpenseEdit = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 }}
+              >
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Paid with
+                </label>
+                <Select
+                  value={formData.paymentMethod}
+                  onValueChange={(value: "cash" | "credit_card" | "upi") =>
+                    setFormData((prev) => ({ ...prev, paymentMethod: value }))
+                  }
+                >
+                  <SelectTrigger className="glass-hover bg-input border-glass-border focus:border-primary focus:ring-primary">
+                    <SelectValue placeholder="Payment method" />
+                  </SelectTrigger>
+                  <SelectContent className="glass border-glass-border">
+                    <SelectItem value="cash">
+                      <span className="flex items-center gap-2">
+                        <Banknote className="h-4 w-4 text-emerald-400" />
+                        Cash
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="credit_card">
+                      <span className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-violet-400" />
+                        Credit card
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="upi">
+                      <span className="flex items-center gap-2">
+                        <Smartphone className="h-4 w-4 text-cyan-400" />
+                        UPI
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </motion.div>
 
               {/* Date Input */}

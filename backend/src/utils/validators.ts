@@ -12,10 +12,13 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required')
 });
 
+const expensePaymentMethodEnum = z.enum(['cash', 'credit_card', 'upi']);
+
 // Expense validation schemas
 export const expenseSchema = z.object({
   amount: z.number().min(0, 'Amount must be positive'),
   category: z.enum(['food', 'groceries', 'vegetables', 'transport', 'travel', 'shopping', 'personal_care', 'entertainment', 'subscriptions', 'bills', 'healthcare', 'insurance', 'education', 'gifts', 'savings', 'investments', 'other']),
+  paymentMethod: expensePaymentMethodEnum.optional(),
   date: z.union([z.string(), z.date()]).optional(),
   notes: z.string().max(500, 'Notes must be less than 500 characters').optional()
 });
@@ -50,9 +53,30 @@ export const goalSchema = z.object({
 
 export const goalUpdateSchema = goalSchema.partial();
 
+const walletBucketEnum = z.enum(['bank', 'creditCard', 'cash']);
+
+export const balanceAddSchema = z.object({
+  bucket: walletBucketEnum,
+  amount: z.number().positive('Amount must be positive')
+});
+
+export const balanceSetSchema = z
+  .object({
+    bank: z.number().finite().optional(),
+    creditCard: z.number().finite().optional(),
+    cash: z.number().finite().optional()
+  })
+  .refine(
+    (d) =>
+      d.bank !== undefined || d.creditCard !== undefined || d.cash !== undefined,
+    { message: 'Provide at least one balance field' }
+  );
+
 // Type exports
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ExpenseInput = z.infer<typeof expenseSchema>;
 export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>;
 export type UserProfileInput = z.infer<typeof userProfileSchema>;
+export type BalanceAddInput = z.infer<typeof balanceAddSchema>;
+export type BalanceSetInput = z.infer<typeof balanceSetSchema>;

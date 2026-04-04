@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, IndianRupee, Tag, Calendar, FileText, Check, Zap, TrendingUp, Sparkles } from "lucide-react";
+import { ArrowLeft, IndianRupee, Tag, Calendar, FileText, Check, Zap, TrendingUp, Sparkles, Banknote, CreditCard, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ const AddExpense = () => {
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
+    paymentMethod: "credit_card" as "cash" | "credit_card" | "upi",
     date: new Date().toLocaleDateString('en-CA'),
     notes: ""
   });
@@ -84,6 +85,7 @@ const AddExpense = () => {
       const response = await expenseApi.createExpense({
         amount: parseFloat(formData.amount),
         category: formData.category,
+        paymentMethod: formData.paymentMethod,
         date: formData.date,
         notes: formData.notes
       });
@@ -99,6 +101,7 @@ const AddExpense = () => {
           setFormData({
             amount: "",
             category: "",
+            paymentMethod: "credit_card",
             date: new Date().toLocaleDateString('en-CA'),
             notes: ""
           });
@@ -337,6 +340,63 @@ const AddExpense = () => {
                     )}
                   </motion.button>
                 ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <label className="block text-sm font-medium text-secondary-foreground mb-4 uppercase tracking-wider">
+                Paid with
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {(
+                  [
+                    { value: "cash" as const, label: "Cash", icon: Banknote, color: "from-emerald-600 to-teal-600", glow: "shadow-emerald-500/50" },
+                    { value: "credit_card" as const, label: "Credit card", icon: CreditCard, color: "from-violet-600 to-purple-600", glow: "shadow-violet-500/50" },
+                    { value: "upi" as const, label: "UPI", icon: Smartphone, color: "from-cyan-600 to-blue-600", glow: "shadow-cyan-500/50" },
+                  ]
+                ).map((opt) => {
+                  const PayIcon = opt.icon;
+                  return (
+                  <motion.button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: opt.value }))}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative p-4 rounded-2xl border transition-all duration-300 ${
+                      formData.paymentMethod === opt.value
+                        ? `bg-gradient-to-br ${opt.color} border-white/30 shadow-lg ${opt.glow}`
+                        : "glass glass-hover border-glass-border"
+                    }`}
+                  >
+                    <div className="relative flex flex-col items-center gap-2">
+                      <PayIcon
+                        className={`h-8 w-8 ${formData.paymentMethod === opt.value ? "text-white" : "text-primary"}`}
+                      />
+                      <span
+                        className={`text-xs font-medium ${
+                          formData.paymentMethod === opt.value ? "text-white" : "text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </span>
+                    </div>
+                    {formData.paymentMethod === opt.value && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center"
+                      >
+                        <Check className="h-3 w-3 text-primary" strokeWidth={3} />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
 
