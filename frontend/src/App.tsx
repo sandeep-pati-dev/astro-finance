@@ -21,6 +21,7 @@ import Balances from "./pages/Balances";
 
 import { authApi } from "./lib/api";
 import { toast } from "@/hooks/use-toast";
+import { CapacitorLifecycle } from "./components/CapacitorLifecycle";
 
 const queryClient = new QueryClient();
 
@@ -260,6 +261,7 @@ const App = () => {
           <Sonner />
           <div className="particles"></div>
           <BrowserRouter>
+            <CapacitorLifecycle />
             <AnimatedRoutes />
           </BrowserRouter>
         </TooltipProvider>

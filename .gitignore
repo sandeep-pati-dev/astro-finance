@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+build/
+*.apk
+*.aab
+
+# Local & Environment Configuration
+*.local
+.env
+.env.*
+!.env.example
+local.properties
+
+# Keystores & Signing
+*.jks
+*.keystore
+
+# Logs & Editors
+*.log
+.DS_Store
+.idea/
+.vscode/

@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets & Environment Variables
+.env
+.env.*
+!.env.example
+
+# Android Local Configuration & Signing Credentials
+android/local.properties
+*.jks
+*.keystore
+*.p12
+*.p8
+*.key
+*.apk
+*.aab
